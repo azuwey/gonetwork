@@ -2,7 +2,7 @@ package matrix
 
 import "errors"
 
-// Errors these errors can be returned from any function in the matrix package
+// These errors can be returned from any function in the matrix package
 var (
 	ErrZeroRowOrCol       = errors.New("Rows and columns must be greater than zero")
 	ErrDataLength         = errors.New("Length of the data must be equal to `r * c`")
