@@ -1,254 +1,336 @@
 package matrix
 
-import "testing"
+import (
+	"errors"
+	"fmt"
+	"testing"
+)
 
 func TestNew(t *testing.T) {
-	rows := 2
-	cols := 2
-	values := []Value{0, 1, 2, 3}
+	testCases := []struct {
+		rows, cols             int
+		values, expectedValues []float64
+		expectedError          error
+	}{
+		{2, 2, []float64{0, 1, 2, 3}, []float64{0, 1, 2, 3}, nil},
+		{2, 2, nil, []float64{0, 0, 0, 0}, nil},
+		{0, 0, nil, nil, ErrZeroRowOrCol},
+		{2, 2, []float64{0}, nil, ErrDataLength},
+	}
 
-	rMatrix, err := New(rows, cols, values...);
+	for tcIndex, tcValue := range testCases {
+		tcValue, tcIndex := tcValue, tcIndex // capture range variables
+		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+			t.Parallel()
+			m, err := New(tcValue.rows, tcValue.cols, tcValue.values)
+
+			if tcValue.expectedError != nil {
+				if !errors.Is(err, tcValue.expectedError) {
+					t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
+					t.Fail()
+				}
+			}
+
+			if tcValue.expectedValues != nil {
+				if len(m.Values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(m.Values))
+					t.Fail()
+				}
+
+				for i, v := range m.Values {
+					if v != tcValue.expectedValues[i] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+						t.Fail()
+					}
+				}
+			} else if m != nil {
+				t.Logf("Matrix should be nil, but it's %+v", m)
+				t.Fail()
+			}
+		})
+	}
+}
+
+func TestAdd(t *testing.T) {
+	testCases := []struct {
+		aMatrix, bMatrix, dMatrix *Matrix
+		expectedValues            []float64
+		expectedError             error
+	}{
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, []float64{0, 2, 4, 6}, nil},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
+		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimesion},
+	}
+
+	for tcIndex, tcValue := range testCases {
+		tcValue, tcIndex := tcValue, tcIndex // capture range variables
+		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+			t.Parallel()
+
+			err := tcValue.dMatrix.Add(tcValue.aMatrix, tcValue.bMatrix)
+
+			if tcValue.expectedError != nil {
+				if !errors.Is(err, tcValue.expectedError) {
+					t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
+					t.Fail()
+				}
+			}
+
+			if tcValue.expectedValues != nil {
+				if len(tcValue.dMatrix.Values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.dMatrix.Values))
+					t.Fail()
+				}
+
+				for i, v := range tcValue.dMatrix.Values {
+					if v != tcValue.expectedValues[i] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+						t.Fail()
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestAddSelf(t *testing.T) {
+	t.Parallel()
+	expectedValues := []float64{0, 2, 4, 6}
+	aMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
+	bMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
+
+	err := aMatrix.Add(aMatrix, bMatrix)
 
 	if err != nil {
-		t.Log("Err should be nil", err)
+		t.Logf("Err should be %v but it's %v", nil, err)
 		t.Fail()
 	}
 
-	if (len(rMatrix.values) != rows * cols) {
-		t.Logf("length of rMatrix.values should be %d but it's %d", rows * cols, len(rMatrix.values))
-		t.Fail()
-	}
-
-	for i := range rMatrix.values {
-		if (rMatrix.values[i] != values[i]) {
-			t.Logf("value of rMatrix.values[%d] should be %f, but it's %f", i, values[i], rMatrix.values[i])
+	for i, v := range aMatrix.Values {
+		if v != expectedValues[i] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
 			t.Fail()
 		}
 	}
 }
 
-func TestNewBadRow(t *testing.T) {
-	rows := 0
-	cols := 2
-	values := []Value{0}
+func TestDimension(t *testing.T) {
+	testCases := []struct {
+		matrix                   *Matrix
+		expectedRow, expectedCol int
+	}{
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, 2, 2},
+		{&Matrix{[]float64{0, 1, 2}, 1, 3}, 1, 3},
+	}
 
-	_, err := New(rows, cols, values...);
+	for tcIndex, tcValue := range testCases {
+		tcValue, tcIndex := tcValue, tcIndex // capture range variables
+		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+			t.Parallel()
 
-	if err == nil {
-		t.Log("Err should not be nil")
-		t.Fail()
+			row, col := tcValue.matrix.Dimensions()
+
+			if row != tcValue.expectedRow {
+				t.Logf("Row should be %d but it's %d", tcValue.expectedRow, row)
+				t.Fail()
+			}
+
+			if col != tcValue.expectedCol {
+				t.Logf("Col should be %d but it's %d", tcValue.expectedCol, col)
+				t.Fail()
+			}
+		})
 	}
 }
 
-func TestNewBadColumn(t *testing.T) {
-	rows := 1
-	cols := 0
-	values := []Value{0}
+func TestMultiply(t *testing.T) {
+	testCases := []struct {
+		aMatrix, bMatrix, dMatrix *Matrix
+		expectedValues            []float64
+		expectedError             error
+	}{
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, []float64{0, 1, 4, 9}, nil},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
+		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimesion},
+	}
 
-	_, err := New(rows, cols, values...);
+	for tcIndex, tcValue := range testCases {
+		tcValue, tcIndex := tcValue, tcIndex // capture range variables
+		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+			t.Parallel()
 
-	if err == nil {
-		t.Log("Err should not be nil")
-		t.Fail()
+			err := tcValue.dMatrix.Multiply(tcValue.aMatrix, tcValue.bMatrix)
+
+			if tcValue.expectedError != nil {
+				if !errors.Is(err, tcValue.expectedError) {
+					t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
+					t.Fail()
+				}
+			}
+
+			if tcValue.expectedValues != nil {
+				if len(tcValue.dMatrix.Values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.dMatrix.Values))
+					t.Fail()
+				}
+
+				for i, v := range tcValue.dMatrix.Values {
+					if v != tcValue.expectedValues[i] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+						t.Fail()
+					}
+				}
+			}
+		})
 	}
 }
 
-func TestNewBadElementLength(t *testing.T) {
-	rows := 2
-	cols := 1
-	values := []Value{0}
+func TestMultiplySelf(t *testing.T) {
+	t.Parallel()
+	expectedValues := []float64{0, 1, 4, 9}
+	aMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
+	bMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
 
-	_, err := New(rows, cols, values...);
-
-	if err == nil {
-		t.Log("Err should not be nil")
-		t.Fail()
-	}
-}
-
-func TestZeros(t *testing.T) {
-	rows := 3
-	cols := 5
-
-	rMatrix, err := Zeros(rows, cols);
+	err := aMatrix.Multiply(aMatrix, bMatrix)
 
 	if err != nil {
-		t.Log("Err should be nil", err)
+		t.Logf("Err should be %v but it's %v", nil, err)
 		t.Fail()
 	}
 
-	if (len(rMatrix.values) != rows * cols) {
-		t.Logf("length of rMatrix.values should be %d but it's %d", rows * cols, len(rMatrix.values))
-		t.Fail()
-	}
-
-	for i := range rMatrix.values {
-		if (rMatrix.values[i] != 0) {
-			t.Logf("value of rMatrix.values[%d] should be %d, but it's %f", i, 0, rMatrix.values[i])
+	for i, v := range aMatrix.Values {
+		if v != expectedValues[i] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
 			t.Fail()
 		}
 	}
 }
 
-func TestAddScalar(t *testing.T) {
-	rows := 2
-	cols := 2
-	scalar := Value(5.0)
-	values := []Value{0, 1, 2, 3}
+func TestProduct(t *testing.T) {
+	testCases := []struct {
+		aMatrix, bMatrix, dMatrix *Matrix
+		expectedValues            []float64
+		expectedError             error
+	}{
+		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, &Matrix{[]float64{0, -1}, 2, 1}, &Matrix{[]float64{}, 0, 0}, []float64{-1, -3, -5}, nil},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
+		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
+		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, &Matrix{[]float64{0, -1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrBadProductDimesion},
+	}
 
-	matrix, _ := New(rows, cols, values...)
-	rMatrix := matrix.AddScalar(scalar);
+	for tcIndex, tcValue := range testCases {
+		tcValue, tcIndex := tcValue, tcIndex // capture range variables
+		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+			t.Parallel()
 
-	for i := range values {
-		if (rMatrix.values[i] != values[i] + scalar) {
-			t.Logf("value of rMatrix.values[%d] should be %f, but it's %f", i, values[i] + scalar, rMatrix.values[i])
-			t.Fail()
-		}
+			err := tcValue.dMatrix.Product(tcValue.aMatrix, tcValue.bMatrix)
+
+			if tcValue.expectedError != nil {
+				if !errors.Is(err, tcValue.expectedError) {
+					t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
+					t.Fail()
+				}
+			}
+
+			if tcValue.expectedValues != nil {
+				if len(tcValue.dMatrix.Values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.dMatrix.Values))
+					t.Fail()
+				}
+
+				for i, v := range tcValue.dMatrix.Values {
+					if v != tcValue.expectedValues[i] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+						t.Fail()
+					}
+				}
+			}
+		})
 	}
 }
 
-func TestAddElementWise(t *testing.T) {
-	rows := 2
-	cols := 2
-	values := []Value{0, 1, 2, 3}
+func TestProductSelf(t *testing.T) {
+	t.Parallel()
+	expectedValues := []float64{-1, -3, -5}
+	aMatrix := &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}
+	bMatrix := &Matrix{[]float64{0, -1}, 2, 1}
 
-	aMatrix, _ := New(rows, cols, values...)
-	bMatrix, _ := New(rows, cols, values...)
-	rMatrix, err := aMatrix.AddElementWise(bMatrix)
+	err := aMatrix.Product(aMatrix, bMatrix)
 
 	if err != nil {
-		t.Log("Err should be nil", err)
+		t.Logf("Err should be %v but it's %v", nil, err)
 		t.Fail()
 	}
 
-	for i := range rMatrix.values {
-		if (rMatrix.values[i] != aMatrix.values[i] + bMatrix.values[i]) {
-			t.Logf("value of rMatrix.values[%d] should be %f, but it's %f", i, aMatrix.values[i] + bMatrix.values[i], rMatrix.values[i])
+	for i, v := range aMatrix.Values {
+		if v != expectedValues[i] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
 			t.Fail()
 		}
 	}
 }
 
-func TestAddElementWiseBadMatrix(t *testing.T) {
-	aRows := 2
-	aCols := 2
-	bRows := 1
-	bCols := 2
-	aValues := []Value{0, 1, 2, 3}
-	aBalues := []Value{0, 1}
+func TestScale(t *testing.T) {
+	testCases := []struct {
+		aMatrix, bMatrix *Matrix
+		scalar           float64
+		expectedValues   []float64
+		expectedError    error
+	}{
+		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, &Matrix{[]float64{}, 0, 0}, 2, []float64{0, 2, 4, 6, 8, 10}, nil},
+		{nil, &Matrix{[]float64{}, 0, 0}, 2, nil, ErrNilMatrix},
+	}
 
-	aMatrix, _ := New(aRows, aCols, aValues...)
-	bMatrix, _ := New(bRows, bCols, aBalues...)
-	_, err := aMatrix.AddElementWise(bMatrix)
+	for tcIndex, tcValue := range testCases {
+		tcValue, tcIndex := tcValue, tcIndex // capture range variables
+		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+			t.Parallel()
 
-	if err == nil {
-		t.Log("Err should not be nil")
-		t.Fail()
+			err := tcValue.bMatrix.Scale(tcValue.scalar, tcValue.aMatrix)
+
+			if tcValue.expectedError != nil {
+				if !errors.Is(err, tcValue.expectedError) {
+					t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
+					t.Fail()
+				}
+			}
+
+			if tcValue.expectedValues != nil {
+				if len(tcValue.bMatrix.Values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.bMatrix.Values))
+					t.Fail()
+				}
+
+				for i, v := range tcValue.bMatrix.Values {
+					if v != tcValue.expectedValues[i] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+						t.Fail()
+					}
+				}
+			}
+		})
 	}
 }
 
-func TestMultiplyScalar(t *testing.T) {
-	rows := 2
-	cols := 2
-	scalar := Value(5.0)
-	values := []Value{0, 1, 2, 3}
+func TestScaleSelf(t *testing.T) {
+	t.Parallel()
+	expectedValues := []float64{0, 2, 4, 6, 8, 10}
+	aMatrix := &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}
+	scalar := 2.0
 
-	matrix, _ := New(rows, cols, values...)
-	rMatrix := matrix.MultiplyScalar(scalar);
-
-	for i := range values {
-		if (rMatrix.values[i] != values[i] * scalar) {
-			t.Logf("value of rMatrix.values[%d] should be %f, but it's %f", i, values[i] * scalar, rMatrix.values[i])
-			t.Fail()
-		}
-	}
-}
-
-func TestMultiplyElementWise(t *testing.T) {
-	rows := 2
-	cols := 2
-	values := []Value{0, 1, 2, 3}
-
-	aMatrix, _ := New(rows, cols, values...)
-	bMatrix, _ := New(rows, cols, values...)
-	rMatrix, err := bMatrix.MultiplyElementWise(aMatrix)
+	err := aMatrix.Scale(scalar, aMatrix)
 
 	if err != nil {
-		t.Log("Err should be nil", err)
+		t.Logf("Err should be %v but it's %v", nil, err)
 		t.Fail()
 	}
 
-	for i := range rMatrix.values {
-		if (rMatrix.values[i] != aMatrix.values[i] * bMatrix.values[i]) {
-			t.Logf("value of rMatrix.values[%d] should be %f, but it's %f", i, aMatrix.values[i] * bMatrix.values[i], rMatrix.values[i])
+	for i, v := range aMatrix.Values {
+		if v != expectedValues[i] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
 			t.Fail()
 		}
-	}
-}
-
-func TestMultiplyElementWiseBadMatrix(t *testing.T) {
-	aRows := 2
-	aCols := 2
-	bRows := 1
-	bCols := 2
-	aValues := []Value{0, 1, 2, 3}
-	aBalues := []Value{0, 1}
-
-	aMatrix, _ := New(aRows, aCols, aValues...)
-	bMatrix, _ := New(bRows, bCols, aBalues...)
-	_, err := aMatrix.AddElementWise(bMatrix)
-
-	if err == nil {
-		t.Log("Err should not be nil")
-		t.Fail()
-	}
-}
-
-func TestMultiplyMatrix(t *testing.T) {
-	aRows := 3
-	aCols := 2
-	bRows := 2
-	bCols := 1
-	aValues := []Value{0, 1, 2, 3, 4, 5}
-	bValues := []Value{0, -1}
-	rValues := []Value{-1, -3, -5}
-
-	aMatrix, _ := New(aRows, aCols, aValues...)
-	bMatrix, _ := New(bRows, bCols, bValues...)
-	rMatrix, err := aMatrix.MultiplyMatrix(bMatrix)
-
-	if err != nil {
-		t.Log("Err should be nil", err)
-		t.Fail()
-	}
-
-	if len(rMatrix.values) != len(rValues) {
-		t.Logf("length of rMatrix.values should be %d but it's %d", len(rValues), len(rMatrix.values))
-		t.Fail()
-	}
-
-	for i := range rMatrix.values {
-		if (rMatrix.values[i] != rValues[i]) {
-			t.Logf("value of rMatrix.values[%d] should be %f, but it's %f", i, rValues[i], rMatrix.values[i])
-			t.Fail()
-		}
-	}
-}
-
-func TestMultiplyMatrixBadMatrix(t *testing.T) {
-	aRows := 2
-	aCols := 3
-	bRows := 2
-	bCols := 1
-	aValues := []Value{0, 1, 2, 3, 4, 5}
-	bValues := []Value{0, -1}
-
-	aMatrix, _ := New(aRows, aCols, aValues...)
-	bMatrix, _ := New(bRows, bCols, bValues...)
-	_, err := aMatrix.MultiplyMatrix(bMatrix)
-
-	if err == nil {
-		t.Log("Err should not be nil")
-		t.Fail()
 	}
 }
