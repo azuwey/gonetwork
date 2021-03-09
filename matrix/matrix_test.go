@@ -22,6 +22,7 @@ func TestNew(t *testing.T) {
 		tcValue, tcIndex := tcValue, tcIndex // capture range variables
 		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
 			t.Parallel()
+
 			m, err := New(tcValue.rows, tcValue.cols, tcValue.values)
 
 			if tcValue.expectedError != nil {
@@ -32,12 +33,12 @@ func TestNew(t *testing.T) {
 			}
 
 			if tcValue.expectedValues != nil {
-				if len(m.Values) != len(tcValue.expectedValues) {
-					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(m.Values))
+				if len(m.values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(m.values))
 					t.Fail()
 				}
 
-				for i, v := range m.Values {
+				for i, v := range m.values {
 					if v != tcValue.expectedValues[i] {
 						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
 						t.Fail()
@@ -78,12 +79,12 @@ func TestAdd(t *testing.T) {
 			}
 
 			if tcValue.expectedValues != nil {
-				if len(tcValue.dMatrix.Values) != len(tcValue.expectedValues) {
-					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.dMatrix.Values))
+				if len(tcValue.dMatrix.values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.dMatrix.values))
 					t.Fail()
 				}
 
-				for i, v := range tcValue.dMatrix.Values {
+				for i, v := range tcValue.dMatrix.values {
 					if v != tcValue.expectedValues[i] {
 						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
 						t.Fail()
@@ -96,6 +97,7 @@ func TestAdd(t *testing.T) {
 
 func TestAddSelf(t *testing.T) {
 	t.Parallel()
+
 	expectedValues := []float64{0, 2, 4, 6}
 	aMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
 	bMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
@@ -107,11 +109,50 @@ func TestAddSelf(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.Values {
+	for i, v := range aMatrix.values {
 		if v != expectedValues[i] {
 			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
 			t.Fail()
 		}
+	}
+}
+
+func TestAt(t *testing.T) {
+	testCases := []struct {
+		rows, cols    int
+		checkIndexes  []int
+		values        []float64
+		expectedError error
+	}{
+		{3, 2, []int{0, 1, 2, 3, 4, 5}, []float64{-1, -3, -5, -3, -8, -15}, nil},
+		{3, 3, []int{6}, []float64{-1, -3, -5, -3, -8, -15}, ErrOutOfBounds},
+	}
+
+	for tcIndex, tcValue := range testCases {
+		tcValue, tcIndex := tcValue, tcIndex // capture range variables
+		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+			t.Parallel()
+
+			aMatrix := &Matrix{tcValue.values, tcValue.rows, tcValue.cols}
+
+			for r := 0; r < tcValue.rows; r++ {
+				for c := 0; c < tcValue.cols; c++ {
+					v, err := aMatrix.At(r, c)
+					if tcValue.expectedError != nil {
+						if errors.Is(err, tcValue.expectedError) {
+							t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
+							t.Fail()
+						}
+						return
+					}
+
+					if v != tcValue.values[r*tcValue.cols+c] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.values[r*tcValue.cols+c], v)
+						t.Fail()
+					}
+				}
+			}
+		})
 	}
 }
 
@@ -171,12 +212,12 @@ func TestMultiply(t *testing.T) {
 			}
 
 			if tcValue.expectedValues != nil {
-				if len(tcValue.dMatrix.Values) != len(tcValue.expectedValues) {
-					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.dMatrix.Values))
+				if len(tcValue.dMatrix.values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.dMatrix.values))
 					t.Fail()
 				}
 
-				for i, v := range tcValue.dMatrix.Values {
+				for i, v := range tcValue.dMatrix.values {
 					if v != tcValue.expectedValues[i] {
 						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
 						t.Fail()
@@ -189,6 +230,7 @@ func TestMultiply(t *testing.T) {
 
 func TestMultiplySelf(t *testing.T) {
 	t.Parallel()
+
 	expectedValues := []float64{0, 1, 4, 9}
 	aMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
 	bMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
@@ -200,7 +242,7 @@ func TestMultiplySelf(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.Values {
+	for i, v := range aMatrix.values {
 		if v != expectedValues[i] {
 			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
 			t.Fail()
@@ -235,12 +277,12 @@ func TestProduct(t *testing.T) {
 			}
 
 			if tcValue.expectedValues != nil {
-				if len(tcValue.dMatrix.Values) != len(tcValue.expectedValues) {
-					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.dMatrix.Values))
+				if len(tcValue.dMatrix.values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.dMatrix.values))
 					t.Fail()
 				}
 
-				for i, v := range tcValue.dMatrix.Values {
+				for i, v := range tcValue.dMatrix.values {
 					if v != tcValue.expectedValues[i] {
 						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
 						t.Fail()
@@ -253,6 +295,7 @@ func TestProduct(t *testing.T) {
 
 func TestProductSelf(t *testing.T) {
 	t.Parallel()
+
 	expectedValues := []float64{-1, -3, -5}
 	aMatrix := &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}
 	bMatrix := &Matrix{[]float64{0, -1}, 2, 1}
@@ -264,9 +307,23 @@ func TestProductSelf(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.Values {
+	for i, v := range aMatrix.values {
 		if v != expectedValues[i] {
 			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
+			t.Fail()
+		}
+	}
+}
+
+func TestRaw(t *testing.T) {
+	t.Parallel()
+
+	values := []float64{-1, -3, -5}
+	aMatrix := &Matrix{values, 1, 3}
+
+	for i, v := range aMatrix.Raw() {
+		if v != values[i] {
+			t.Logf("Value of the matrix should be %f but it's %f", values[i], v)
 			t.Fail()
 		}
 	}
@@ -298,12 +355,12 @@ func TestScale(t *testing.T) {
 			}
 
 			if tcValue.expectedValues != nil {
-				if len(tcValue.bMatrix.Values) != len(tcValue.expectedValues) {
-					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.bMatrix.Values))
+				if len(tcValue.bMatrix.values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.bMatrix.values))
 					t.Fail()
 				}
 
-				for i, v := range tcValue.bMatrix.Values {
+				for i, v := range tcValue.bMatrix.values {
 					if v != tcValue.expectedValues[i] {
 						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
 						t.Fail()
@@ -316,6 +373,7 @@ func TestScale(t *testing.T) {
 
 func TestScaleSelf(t *testing.T) {
 	t.Parallel()
+
 	expectedValues := []float64{0, 2, 4, 6, 8, 10}
 	aMatrix := &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}
 	scalar := 2.0
@@ -327,10 +385,29 @@ func TestScaleSelf(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.Values {
+	for i, v := range aMatrix.values {
 		if v != expectedValues[i] {
 			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
 			t.Fail()
+		}
+	}
+}
+
+func TestValues(t *testing.T) {
+	t.Parallel()
+
+	rows, cols := 3, 2
+	aMatrix := &Matrix{[]float64{-1, -3, -5, -3, -8, -15}, rows, cols}
+	expectedValues := [][]float64{{-1, -3}, {-5, -3}, {-8, -15}}
+
+	v := aMatrix.Values()
+
+	for r := 0; r < rows; r++ {
+		for c := 0; c < cols; c++ {
+			if v[r][c] != expectedValues[r][c] {
+				t.Logf("Value of the matrix should be %f but it's %f", expectedValues[r][c], v[r][c])
+				t.Fail()
+			}
 		}
 	}
 }

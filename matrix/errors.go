@@ -9,4 +9,5 @@ var (
 	ErrNilMatrix          = errors.New("Matrix cannot be nil")
 	ErrDifferentDimesion  = errors.New("The dimensions of the matrices must be same")
 	ErrBadProductDimesion = errors.New("The number of columns in `a` matrix must be equal to the number of rows in `b` matrix")
+	ErrOutOfBounds        = errors.New("Index is out of bounds")
 )
