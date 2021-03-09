@@ -172,3 +172,29 @@ func (m *Matrix) Values() [][]float64 {
 
 	return values
 }
+
+// Apply applies the function "fn" to each of the elements of "a", placing the resulting matrix in the receiver.
+// The function "fn" takes the value of the element, the index of the row and the column, and it returns a new value for that element.
+// It will return an error if "fn == nil" or "a == nil".
+func (m *Matrix) Apply(fn func(v float64, r, c int) float64, a *Matrix) error {
+	if fn == nil {
+		return ErrNilFunction
+	}
+
+	if a == nil {
+		return ErrNilMatrix
+	}
+
+	aVals := make([]float64, a.rows*a.columns)
+	copy(aVals, a.values)
+
+	m.rows, m.columns = a.Dimensions()
+	m.values = make([]float64, m.rows*m.columns)
+
+	for i := range m.values {
+		r := i / m.columns
+		m.values[i] = fn(aVals[i], r, i-(r*m.columns))
+	}
+
+	return nil
+}

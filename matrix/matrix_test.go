@@ -411,3 +411,72 @@ func TestValues(t *testing.T) {
 		}
 	}
 }
+
+// TODO: Apply test
+func TestApply(t *testing.T) {
+	t.Parallel()
+
+	rows, cols := 3, 2
+	aMatrix := &Matrix{[]float64{0, 1, 2, 3, 4, 5}, rows, cols}
+	expectedValues := []float64{2, 3, 4, 5, 6, 7}
+	expectedRows := []int{0, 0, 1, 1, 2, 2}
+	expectedCols := []int{0, 1, 0, 1, 0, 1}
+
+	currentIndex := 0
+	err := aMatrix.Apply(func(v float64, r, c int) float64 {
+		if r != expectedRows[currentIndex] {
+			t.Logf("Row should be %d but it's %d", expectedRows[currentIndex], r)
+			t.Fail()
+		}
+
+		if c != expectedCols[currentIndex] {
+			t.Logf("Column should be %d but it's %d", expectedCols[currentIndex], r)
+			t.Fail()
+		}
+
+		currentIndex++
+		return v + 2
+	}, aMatrix)
+
+	if err != nil {
+		t.Logf("Err should be %v but it's %v", nil, err)
+		t.Fail()
+	}
+
+	for i, v := range aMatrix.values {
+		if v != expectedValues[i] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
+			t.Fail()
+		}
+	}
+}
+
+func TestApplyNilFunction(t *testing.T) {
+	t.Parallel()
+
+	rows, cols := 3, 2
+	aMatrix := &Matrix{[]float64{0, 1, 2, 3, 4, 5}, rows, cols}
+
+	err := aMatrix.Apply(nil, aMatrix)
+
+	if !errors.Is(err, ErrNilFunction) {
+		t.Logf("Err should be %v but it's %v", ErrNilFunction, err)
+		t.Fail()
+	}
+}
+
+func TestApplyNilMatrix(t *testing.T) {
+	t.Parallel()
+
+	rows, cols := 3, 2
+	aMatrix := &Matrix{[]float64{0, 1, 2, 3, 4, 5}, rows, cols}
+
+	err := aMatrix.Apply(func(v float64, r, c int) float64 {
+		return v
+	}, nil)
+
+	if !errors.Is(err, ErrNilMatrix) {
+		t.Logf("Err should be %v but it's %v", ErrNilMatrix, err)
+		t.Fail()
+	}
+}
