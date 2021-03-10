@@ -8,7 +8,7 @@ type Matrix struct {
 
 // New creates a new Matrix with "r" rows and "c" columns, the "v" must be arranged in row-major order.
 // If "v == nil", a new slice will be allocated with "r * c" size.
-// If the length of the "v" is "r * c" it will be used as as the backing slice otherwise it will return an error.
+// If the length of the "v" is "r * c" it will be used as the underlaying slice otherwise it will return an error.
 // It will also return an error if "r <= 0" of "c <= 0".
 func New(r, c int, v []float64) (*Matrix, error) {
 	if r <= 0 || c <= 0 {
@@ -23,8 +23,7 @@ func New(r, c int, v []float64) (*Matrix, error) {
 		return nil, ErrDataLength
 	}
 
-	m := &Matrix{make([]float64, r*c), r, c}
-	copy(m.values, v)
+	m := &Matrix{v, r, c}
 
 	return m, nil
 }
@@ -53,6 +52,32 @@ func (m *Matrix) Add(a, b *Matrix) error {
 
 	for i := range m.values {
 		m.values[i] = aVals[i] + bVals[i]
+	}
+
+	return nil
+}
+
+// Apply applies the function "fn" to each of the elements of "a", placing the resulting matrix in the receiver.
+// The function "fn" takes the value of the element, the index of the row and the column, and it returns a new value for that element.
+// It will return an error if "fn == nil" or "a == nil".
+func (m *Matrix) Apply(fn func(v float64, r, c int) float64, a *Matrix) error {
+	if fn == nil {
+		return ErrNilFunction
+	}
+
+	if a == nil {
+		return ErrNilMatrix
+	}
+
+	aVals := make([]float64, a.rows*a.columns)
+	copy(aVals, a.values)
+
+	m.rows, m.columns = a.Dimensions()
+	m.values = make([]float64, m.rows*m.columns)
+
+	for i := range m.values {
+		r := i / m.columns
+		m.values[i] = fn(aVals[i], r, i-(r*m.columns))
 	}
 
 	return nil
@@ -134,7 +159,8 @@ func (m *Matrix) Product(a, b *Matrix) error {
 	return nil
 }
 
-// Raw returns the underlying slice of the matrix.
+// Raw returns the underlying slice.
+// Changes on this slice will be refrected on the matrix.
 func (m *Matrix) Raw() []float64 {
 	return m.values
 }
@@ -171,30 +197,4 @@ func (m *Matrix) Values() [][]float64 {
 	}
 
 	return values
-}
-
-// Apply applies the function "fn" to each of the elements of "a", placing the resulting matrix in the receiver.
-// The function "fn" takes the value of the element, the index of the row and the column, and it returns a new value for that element.
-// It will return an error if "fn == nil" or "a == nil".
-func (m *Matrix) Apply(fn func(v float64, r, c int) float64, a *Matrix) error {
-	if fn == nil {
-		return ErrNilFunction
-	}
-
-	if a == nil {
-		return ErrNilMatrix
-	}
-
-	aVals := make([]float64, a.rows*a.columns)
-	copy(aVals, a.values)
-
-	m.rows, m.columns = a.Dimensions()
-	m.values = make([]float64, m.rows*m.columns)
-
-	for i := range m.values {
-		r := i / m.columns
-		m.values[i] = fn(aVals[i], r, i-(r*m.columns))
-	}
-
-	return nil
 }
