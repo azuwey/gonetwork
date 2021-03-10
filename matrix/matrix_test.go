@@ -359,6 +359,7 @@ func TestProduct(t *testing.T) {
 		expectedError             error
 	}{
 		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, &Matrix{[]float64{0, -1}, 2, 1}, &Matrix{[]float64{}, 0, 0}, []float64{-1, -3, -5}, nil},
+		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, &Matrix{[]float64{}, 0, 0}, []float64{10, 13, 28, 40}, nil},
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
 		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
 		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, &Matrix{[]float64{0, -1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrBadProductDimesion},
