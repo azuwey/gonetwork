@@ -99,6 +99,37 @@ func (m *Matrix) Dimensions() (int, int) {
 	return m.rows, m.columns
 }
 
+// MatrixProduct performs matrix multiplication of "a" and "b", placing the result in the receiver.
+// It will return an error if the number of columns in "a" not equal with the number of rows in "b".
+// It will also return an error if "b == nil" or "a == nil".
+func (m *Matrix) MatrixProduct(a, b *Matrix) error {
+	if a == nil || b == nil {
+		return ErrNilMatrix
+	}
+
+	aRows, aCols := a.Dimensions()
+	bRows, bCols := b.Dimensions()
+	if aCols != bRows {
+		return ErrBadProductDimesion
+	}
+
+	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
+	copy(aVals, a.values)
+	copy(bVals, b.values)
+
+	m.rows = aRows
+	m.columns = bCols
+	m.values = make([]float64, m.rows*m.columns)
+
+	for mIndex := range m.values {
+		for bIndex := 0; bIndex < bRows; bIndex++ {
+			m.values[mIndex] += aVals[((mIndex/bCols)*aCols)+bIndex] * bVals[(bIndex*bCols)+(mIndex%bCols)]
+		}
+	}
+
+	return nil
+}
+
 // Multiply performs element-wise multiplication of "a" and "b", placing the result in the receiver.
 // It will return an error if the two matrices does not have the same dimensions.
 // It will also return an error if "b == nil" or "a == nil".
@@ -123,37 +154,6 @@ func (m *Matrix) Multiply(a, b *Matrix) error {
 
 	for i := range m.values {
 		m.values[i] = aVals[i] * bVals[i]
-	}
-
-	return nil
-}
-
-// Product performs matrix multiplication of "a" and "b", placing the result in the receiver.
-// It will return an error if the number of columns in "a" not equal with the number of rows in "b".
-// It will also return an error if "b == nil" or "a == nil".
-func (m *Matrix) Product(a, b *Matrix) error {
-	if a == nil || b == nil {
-		return ErrNilMatrix
-	}
-
-	aRows, aCols := a.Dimensions()
-	bRows, bCols := b.Dimensions()
-	if aCols != bRows {
-		return ErrBadProductDimesion
-	}
-
-	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
-	copy(aVals, a.values)
-	copy(bVals, b.values)
-
-	m.rows = aRows
-	m.columns = bCols
-	m.values = make([]float64, m.rows*m.columns)
-
-	for mIndex := range m.values {
-		for bIndex, value := range bVals {
-			m.values[mIndex] += value * aVals[bIndex+(mIndex*aCols)]
-		}
 	}
 
 	return nil

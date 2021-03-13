@@ -12,7 +12,7 @@ func ExampleNew() {
 
 	fmt.Println(m.Raw())
 	// Output:
-	// [0, 1, 2, 3, 4, 5]
+	// [0 1 2 3 4 5]
 }
 
 func ExampleNew_zeros() {
@@ -21,7 +21,7 @@ func ExampleNew_zeros() {
 
 	fmt.Println(m.Raw())
 	// Output:
-	// [0, 0, 0, 0, 0, 0]
+	// [0 0 0 0 0 0]
 }
 
 func Example_add() {
