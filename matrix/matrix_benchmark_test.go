@@ -84,6 +84,25 @@ func BenchmarkDimensions(b *testing.B) {
 	}
 }
 
+func BenchmarkMatrixProduct(b *testing.B) {
+	mVals := make([]float64, b.N)
+	aVals := make([]float64, b.N)
+
+	for i := 0; i < b.N; i++ {
+		mVals[i] = rand.Float64()
+		aVals[i] = rand.Float64()
+	}
+
+	m := &Matrix{mVals, 1, b.N}
+	a := &Matrix{aVals, b.N, 1}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		m.MatrixProduct(m, a)
+	}
+}
+
 func BenchmarkMultiply(b *testing.B) {
 	mVals := make([]float64, b.N)
 	aVals := make([]float64, b.N)
@@ -100,25 +119,6 @@ func BenchmarkMultiply(b *testing.B) {
 
 	for i := 0; i < b.N; i++ {
 		m.Multiply(m, a)
-	}
-}
-
-func BenchmarkProduct(b *testing.B) {
-	mVals := make([]float64, b.N)
-	aVals := make([]float64, b.N)
-
-	for i := 0; i < b.N; i++ {
-		mVals[i] = rand.Float64()
-		aVals[i] = rand.Float64()
-	}
-
-	m := &Matrix{mVals, 1, b.N}
-	a := &Matrix{aVals, b.N, 1}
-
-	b.ResetTimer()
-
-	for i := 0; i < b.N; i++ {
-		m.MatrixProduct(m, a)
 	}
 }
 

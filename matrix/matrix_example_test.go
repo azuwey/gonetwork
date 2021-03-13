@@ -79,6 +79,18 @@ func Example_dimensions() {
 	// 2 3
 }
 
+func Example_matrixProduct() {
+	a, _ := matrix.New(4, 3, []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})
+	b, _ := matrix.New(3, 1, []float64{0, -1, 2})
+
+	a.MatrixProduct(a, b)
+	fmt.Println(a.Raw())
+	fmt.Println(a.Dimensions())
+	// Output:
+	// [3 6 9 12]
+	// 4 1
+}
+
 func Example_multiply() {
 	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 	b, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
@@ -87,4 +99,29 @@ func Example_multiply() {
 	fmt.Println(a.Raw())
 	// Output:
 	// [0 1 4 9 16 25]
+}
+
+func Example_raw() {
+	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+
+	fmt.Println(a.Raw())
+	// Output:
+	// [0 1 2 3 4 5]
+}
+
+func Example_scale() {
+	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+
+	a.Scale(2, a)
+	fmt.Println(a.Raw())
+	// Output:
+	// [0 2 4 6 8 10]
+}
+
+func Example_values() {
+	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+
+	fmt.Println(a.Values())
+	// Output:
+	// [[0 1 2] [3 4 5]]
 }
