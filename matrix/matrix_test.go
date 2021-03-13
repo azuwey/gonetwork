@@ -498,6 +498,59 @@ func TestScaleSelf(t *testing.T) {
 	}
 }
 
+func TestTranspose(t *testing.T) {
+	testCases := []struct {
+		aMatrix                    *Matrix
+		expectedValues             []float64
+		expectedRows, expectedCols int
+		expectedError              error
+	}{
+		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, []float64{0, 2, 4, 1, 3, 5}, 2, 3, nil},
+		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, []float64{0, 3, 1, 4, 2, 5}, 3, 2, nil},
+		{&Matrix{[]float64{0, 1, 2}, 1, 3}, []float64{0, 1, 2}, 3, 1, nil},
+		{nil, nil, 0, 0, ErrNilMatrix},
+	}
+
+	for tcIndex, tcValue := range testCases {
+		tcValue, tcIndex := tcValue, tcIndex // capture range variables
+		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+			t.Parallel()
+
+			err := tcValue.aMatrix.Transpose(tcValue.aMatrix)
+
+			if tcValue.expectedError != nil {
+				if !errors.Is(err, tcValue.expectedError) {
+					t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
+					t.Fail()
+				}
+				return
+			}
+
+			if tcValue.expectedValues != nil {
+				if len(tcValue.aMatrix.values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.aMatrix.values))
+					t.Fail()
+				}
+
+				for i, v := range tcValue.aMatrix.values {
+					if v != tcValue.expectedValues[i] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+						t.Fail()
+					}
+				}
+
+				if tcValue.aMatrix.rows != tcValue.expectedRows {
+					t.Logf("Number of rows should be %d but it's %d", tcValue.expectedRows, tcValue.aMatrix.rows)
+				}
+
+				if tcValue.aMatrix.columns != tcValue.expectedCols {
+					t.Logf("Number of columns should be %d but it's %d", tcValue.expectedCols, tcValue.aMatrix.columns)
+				}
+			}
+		})
+	}
+}
+
 func TestValues(t *testing.T) {
 	t.Parallel()
 

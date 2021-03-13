@@ -118,6 +118,15 @@ func Example_scale() {
 	// [0 2 4 6 8 10]
 }
 
+func Example_transpose() {
+	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+
+	a.Transpose(a)
+	fmt.Println(a.Raw())
+	// Output:
+	// [0 3 1 4 2 5]
+}
+
 func Example_values() {
 	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 

@@ -69,10 +69,11 @@ func (m *Matrix) Apply(fn func(v float64, r, c int) float64, a *Matrix) error {
 		return ErrNilMatrix
 	}
 
-	aVals := make([]float64, a.rows*a.columns)
+	aRows, aCols := a.Dimensions()
+	aVals := make([]float64, aRows*aCols)
 	copy(aVals, a.values)
 
-	m.rows, m.columns = a.Dimensions()
+	m.rows, m.columns = aRows, aCols
 	m.values = make([]float64, m.rows*m.columns)
 
 	for i := range m.values {
@@ -172,14 +173,36 @@ func (m *Matrix) Scale(f float64, a *Matrix) error {
 		return ErrNilMatrix
 	}
 
-	aVals := make([]float64, a.rows*a.columns)
+	aRows, aCols := a.Dimensions()
+	aVals := make([]float64, aRows*aCols)
 	copy(aVals, a.values)
 
-	m.rows, m.columns = a.Dimensions()
+	m.rows, m.columns = aRows, aCols
 	m.values = make([]float64, m.rows*m.columns)
 
 	for i := range m.values {
 		m.values[i] = f * aVals[i]
+	}
+
+	return nil
+}
+
+// Transpose switches the row and column indices of the matrix, placing the result in the receiver.
+// It will return an error if "a == nil".
+func (m *Matrix) Transpose(a *Matrix) error {
+	if a == nil {
+		return ErrNilMatrix
+	}
+
+	aRows, aCols := a.Dimensions()
+	aVals := make([]float64, aRows*aCols)
+	copy(aVals, a.values)
+
+	m.rows, m.columns = aCols, aRows
+	m.values = make([]float64, m.rows*m.columns)
+
+	for i := range m.values {
+		m.values[i] = aVals[(i%aRows*aCols)+(i/aRows)]
 	}
 
 	return nil
