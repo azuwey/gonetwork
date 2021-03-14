@@ -92,7 +92,7 @@ func TestAdd(t *testing.T) {
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, []float64{0, 2, 4, 6}, nil},
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
 		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
-		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimesion},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimension},
 	}
 
 	for tcIndex, tcValue := range testCases {
@@ -297,7 +297,7 @@ func TestMatrixProduct(t *testing.T) {
 		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, &Matrix{[]float64{}, 0, 0}, []float64{10, 13, 28, 40}, nil},
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
 		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
-		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, &Matrix{[]float64{0, -1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrBadProductDimesion},
+		{&Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, &Matrix{[]float64{0, -1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrBadProductDimension},
 	}
 
 	for tcIndex, tcValue := range testCases {
@@ -363,7 +363,7 @@ func TestMultiply(t *testing.T) {
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, []float64{0, 1, 4, 9}, nil},
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
 		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
-		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimesion},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimension},
 	}
 
 	for tcIndex, tcValue := range testCases {
@@ -507,7 +507,7 @@ func TestSubtract(t *testing.T) {
 		{&Matrix{[]float64{1, 2, 3, 4}, 2, 2}, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, []float64{1, 1, 1, 1}, nil},
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
 		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
-		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimesion},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimension},
 	}
 
 	for tcIndex, tcValue := range testCases {

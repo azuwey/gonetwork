@@ -39,7 +39,7 @@ func (m *Matrix) Add(a, b *Matrix) error {
 	aRows, aCols := a.Dimensions()
 	bRows, bCols := b.Dimensions()
 	if aRows != bRows || aCols != bCols {
-		return ErrDifferentDimesion
+		return ErrDifferentDimension
 	}
 
 	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
@@ -111,7 +111,7 @@ func (m *Matrix) MatrixProduct(a, b *Matrix) error {
 	aRows, aCols := a.Dimensions()
 	bRows, bCols := b.Dimensions()
 	if aCols != bRows {
-		return ErrBadProductDimesion
+		return ErrBadProductDimension
 	}
 
 	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
@@ -142,7 +142,7 @@ func (m *Matrix) Multiply(a, b *Matrix) error {
 	aRows, aCols := a.Dimensions()
 	bRows, bCols := b.Dimensions()
 	if aRows != bRows || aCols != bCols {
-		return ErrDifferentDimesion
+		return ErrDifferentDimension
 	}
 
 	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
@@ -198,7 +198,7 @@ func (m *Matrix) Subtract(a, b *Matrix) error {
 	aRows, aCols := a.Dimensions()
 	bRows, bCols := b.Dimensions()
 	if aRows != bRows || aCols != bCols {
-		return ErrDifferentDimesion
+		return ErrDifferentDimension
 	}
 
 	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
