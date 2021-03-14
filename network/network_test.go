@@ -24,7 +24,7 @@ func TestFeedForward(t *testing.T) {
 	t.Fail()
 }
 
-func TestTrain(t *testing.T) {
+func TestTrain_xor(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping test in short mode.")
 	}
@@ -60,9 +60,26 @@ func TestTrain(t *testing.T) {
 
 	for _, trainingData := range trainingDatas {
 		inputs, _ := matrix.New(2, 1, trainingData.inputs)
-		guess, _ := network.FeedForward(inputs, sigmoid)
-		t.Log(guess.Raw())
-	}
+		guesses, _ := network.FeedForward(inputs, sigmoid)
 
-	t.Fail()
+		for _, target := range trainingData.targets {
+			if target == 0 {
+				for _, guess := range guesses.Raw() {
+					if guess >= 0.02 {
+						t.Logf("Guessing target failed for %v, guess expected to be <0.02, but got %f", trainingData.inputs, guess)
+						t.Fail()
+					}
+				}
+			}
+
+			if target == 1 {
+				for _, guess := range guesses.Raw() {
+					if guess <= 0.98 {
+						t.Logf("Guessing target failed for %v, guess expected to be >0.98, but got %f", trainingData.inputs, guess)
+						t.Fail()
+					}
+				}
+			}
+		}
+	}
 }
