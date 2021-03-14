@@ -83,3 +83,23 @@ func (n *Network) FeedForward(i *matrix.Matrix, fn func(v float64, r, c int) flo
 
 	return outputValues, nil
 }
+
+// Train ...
+func (n *Network) Train(i *matrix.Matrix, t *matrix.Matrix, fn func(v float64, r, c int) float64) (*matrix.Matrix, error) {
+	outputValues, err := n.FeedForward(i, fn)
+	if !errors.Is(err, nil) {
+		return nil, err
+	}
+
+	outputErrors := &matrix.Matrix{}
+	err = outputErrors.Subtract(t, outputValues)
+	if !errors.Is(err, nil) {
+		return nil, err
+	}
+
+	hiddenErrors := &matrix.Matrix{}
+	hiddenErrors.Transpose(n.oWeights)
+	hiddenErrors.MatrixProduct(hiddenErrors, outputErrors)
+
+	return hiddenErrors, nil
+}

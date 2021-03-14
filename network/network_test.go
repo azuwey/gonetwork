@@ -1,6 +1,7 @@
 package network
 
 import (
+	"errors"
 	"math"
 	"testing"
 
@@ -20,4 +21,21 @@ func TestFeedForward(t *testing.T) {
 
 	t.Log(guess.Raw())
 	t.Fail()
+}
+
+func TestTrain(t *testing.T) {
+	inputs, _ := matrix.New(2, 1, []float64{0, 1})
+	targets, _ := matrix.New(2, 1, []float64{1, 0})
+	network, _ := New(2, 2, 2)
+	guess, err := network.Train(inputs, targets, func(v float64, _, _ int) float64 {
+		return 1 / (1 + math.Exp(-v))
+	})
+
+	if !errors.Is(err, nil) {
+		t.Log(err)
+		t.Fail()
+	} else {
+		t.Log(guess.Raw())
+		t.Fail()
+	}
 }
