@@ -187,6 +187,35 @@ func (m *Matrix) Scale(f float64, a *Matrix) error {
 	return nil
 }
 
+// Subtract subtracts "a" and "b" element-wise, placing the result in the receiver, in the order of "a - b"
+// It will return an error if the two matrices do not have the same dimensions.
+// It will also return an error if "b == nil" or "a == nil".
+func (m *Matrix) Subtract(a, b *Matrix) error {
+	if a == nil || b == nil {
+		return ErrNilMatrix
+	}
+
+	aRows, aCols := a.Dimensions()
+	bRows, bCols := b.Dimensions()
+	if aRows != bRows || aCols != bCols {
+		return ErrDifferentDimesion
+	}
+
+	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
+	copy(aVals, a.values)
+	copy(bVals, b.values)
+
+	m.rows = aRows
+	m.columns = aCols
+	m.values = make([]float64, m.rows*m.columns)
+
+	for i := range m.values {
+		m.values[i] = aVals[i] - bVals[i]
+	}
+
+	return nil
+}
+
 // Transpose switches the row and column indices of the matrix, placing the result in the receiver.
 // It will return an error if "a == nil".
 func (m *Matrix) Transpose(a *Matrix) error {

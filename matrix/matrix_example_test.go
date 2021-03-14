@@ -118,6 +118,16 @@ func Example_scale() {
 	// [0 2 4 6 8 10]
 }
 
+func Example_subtract() {
+	a, _ := matrix.New(2, 3, []float64{2, 4, 8, 16, 32, 64})
+	b, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+
+	a.Subtract(a, b)
+	fmt.Println(a.Raw())
+	// Output:
+	// [2 3 6 13 28 59]
+}
+
 func Example_transpose() {
 	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 

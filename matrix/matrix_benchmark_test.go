@@ -154,6 +154,25 @@ func BenchmarkScale(b *testing.B) {
 	}
 }
 
+func BenchmarkSubtract(b *testing.B) {
+	mVals := make([]float64, b.N)
+	aVals := make([]float64, b.N)
+
+	for i := 0; i < b.N; i++ {
+		mVals[i] = rand.Float64()
+		aVals[i] = rand.Float64()
+	}
+
+	m := &Matrix{mVals, b.N, 1}
+	a := &Matrix{aVals, b.N, 1}
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		m.Subtract(m, a)
+	}
+}
+
 func BenchmarkTranspose(b *testing.B) {
 	mVals := make([]float64, b.N*2)
 

@@ -498,6 +498,72 @@ func TestScaleSelf(t *testing.T) {
 	}
 }
 
+func TestSubtract(t *testing.T) {
+	testCases := []struct {
+		aMatrix, bMatrix, dMatrix *Matrix
+		expectedValues            []float64
+		expectedError             error
+	}{
+		{&Matrix{[]float64{1, 2, 3, 4}, 2, 2}, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, []float64{1, 1, 1, 1}, nil},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
+		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimesion},
+	}
+
+	for tcIndex, tcValue := range testCases {
+		tcValue, tcIndex := tcValue, tcIndex // capture range variables
+		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+			t.Parallel()
+
+			err := tcValue.dMatrix.Subtract(tcValue.aMatrix, tcValue.bMatrix)
+
+			if tcValue.expectedError != nil {
+				if !errors.Is(err, tcValue.expectedError) {
+					t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
+					t.Fail()
+				}
+				return
+			}
+
+			if tcValue.expectedValues != nil {
+				if len(tcValue.dMatrix.values) != len(tcValue.expectedValues) {
+					t.Logf("Lenght of the matrix should be %d but it's %d", len(tcValue.expectedValues), len(tcValue.dMatrix.values))
+					t.Fail()
+				}
+
+				for i, v := range tcValue.dMatrix.values {
+					if v != tcValue.expectedValues[i] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+						t.Fail()
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestSubtractSelf(t *testing.T) {
+	t.Parallel()
+
+	expectedValues := []float64{1, 1, 1, 1}
+	aMatrix := &Matrix{[]float64{1, 2, 3, 4}, 2, 2}
+	bMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
+
+	err := aMatrix.Subtract(aMatrix, bMatrix)
+
+	if !errors.Is(err, nil) {
+		t.Logf("Err should be %v but it's %v", nil, err)
+		t.Fail()
+	}
+
+	for i, v := range aMatrix.values {
+		if v != expectedValues[i] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
+			t.Fail()
+		}
+	}
+}
+
 func TestTranspose(t *testing.T) {
 	testCases := []struct {
 		aMatrix                    *Matrix
