@@ -6,6 +6,9 @@ type Matrix struct {
 	rows, columns int
 }
 
+// ApplyFn represents a function that is applied to the matrix when Apply is called
+type ApplyFn func(v float64, r, c int) float64
+
 // New creates a new Matrix with "r" rows and "c" columns, the "v" must be arranged in row-major order.
 // If "v == nil", a new slice will be allocated with "r * c" size.
 // If the length of the "v" is "r * c" it will be used as the underlaying slice otherwise it will return an error.
@@ -60,7 +63,7 @@ func (m *Matrix) Add(a, b *Matrix) error {
 // Apply applies the function "fn" to each of the elements of "a", placing the resulting matrix in the receiver.
 // The function "fn" takes the value of the element, the index of the row and the column, and it returns a new value for that element.
 // It will return an error if "fn == nil" or "a == nil".
-func (m *Matrix) Apply(fn func(v float64, r, c int) float64, a *Matrix) error {
+func (m *Matrix) Apply(fn ApplyFn, a *Matrix) error {
 	if fn == nil {
 		return ErrNilFunction
 	}
