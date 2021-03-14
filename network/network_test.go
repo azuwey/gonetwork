@@ -3,6 +3,7 @@ package network
 import (
 	"errors"
 	"math"
+	"math/rand"
 	"testing"
 
 	"github.com/azuwey/gonetwork/matrix"
@@ -24,10 +25,21 @@ func TestFeedForward(t *testing.T) {
 }
 
 func TestTrain(t *testing.T) {
-	inputs, _ := matrix.New(2, 1, []float64{0, 1})
-	targets, _ := matrix.New(2, 1, []float64{1, 0})
-	network, _ := New(2, 2, 2, 0.1)
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
 
+	trainingDatas := []struct {
+		inputs  []float64
+		targets []float64
+	}{
+		{[]float64{0, 0}, []float64{0}},
+		{[]float64{0, 1}, []float64{1}},
+		{[]float64{1, 0}, []float64{1}},
+		{[]float64{1, 1}, []float64{0}},
+	}
+
+	network, _ := New(2, 2, 1, 0.1)
 	sigmoid := func(v float64, _, _ int) float64 {
 		return 1 / (1 + math.Exp(-v))
 	}
@@ -36,13 +48,21 @@ func TestTrain(t *testing.T) {
 		return sigmoid(v, r, c) * (1 - sigmoid(v, r, c))
 	}
 
-	guess, err := network.Train(inputs, targets, sigmoid, derivativeSigmoid)
-
-	if !errors.Is(err, nil) {
-		t.Log(err)
-		t.Fail()
-	} else {
-		t.Log(guess.Raw())
-		t.Fail()
+	for i := 0; i < 500000; i++ {
+		traingingDataIndex := rand.Intn(len(trainingDatas))
+		inputs, _ := matrix.New(2, 1, trainingDatas[traingingDataIndex].inputs)
+		targets, _ := matrix.New(1, 1, trainingDatas[traingingDataIndex].targets)
+		if err := network.Train(inputs, targets, sigmoid, derivativeSigmoid); !errors.Is(err, nil) {
+			t.Log(err)
+			t.Fail()
+		}
 	}
+
+	for _, trainingData := range trainingDatas {
+		inputs, _ := matrix.New(2, 1, trainingData.inputs)
+		guess, _ := network.FeedForward(inputs, sigmoid)
+		t.Log(guess.Raw())
+	}
+
+	t.Fail()
 }
