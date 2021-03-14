@@ -55,6 +55,14 @@ func New(i, h, o int) (*Network, error) {
 
 // FeedForward ...
 func (n *Network) FeedForward(i *matrix.Matrix, fn func(v float64, r, c int) float64) (*matrix.Matrix, error) {
+	if i == nil {
+		return nil, ErrNilMatrix
+	}
+
+	if fn == nil {
+		return nil, ErrNilFn
+	}
+
 	hiddenValues := &matrix.Matrix{}
 	err := hiddenValues.MatrixProduct(n.hWeights, i)
 	if !errors.Is(err, nil) {
@@ -86,6 +94,25 @@ func (n *Network) FeedForward(i *matrix.Matrix, fn func(v float64, r, c int) flo
 
 // Train ...
 func (n *Network) Train(i *matrix.Matrix, t *matrix.Matrix, fn func(v float64, r, c int) float64) (*matrix.Matrix, error) {
+	if i == nil {
+		return nil, ErrNilMatrix
+	}
+
+	if t == nil {
+		return nil, ErrNilMatrix
+	}
+
+	if fn == nil {
+		return nil, ErrNilFn
+	}
+
+	iRows, iCols := i.Dimensions()
+	tRows, tCols := t.Dimensions()
+
+	if iRows != tRows || iCols != tCols {
+		return nil, ErrDifferentDimension
+	}
+
 	outputValues, err := n.FeedForward(i, fn)
 	if !errors.Is(err, nil) {
 		return nil, err
