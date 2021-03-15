@@ -15,6 +15,17 @@ func BenchmarkNew(b *testing.B) {
 	}
 }
 
+func BenchmarkCopy(b *testing.B) {
+	mVals := make([]float64, b.N)
+	a, _ := New(b.N, 1, mVals)
+
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		Copy(a)
+	}
+}
+
 func BenchmarkAdd(b *testing.B) {
 	mVals := make([]float64, b.N)
 	aVals := make([]float64, b.N)

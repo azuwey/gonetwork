@@ -57,8 +57,8 @@ func TestNewDataChange(t *testing.T) {
 	t.Parallel()
 
 	data := []float64{0, 1, 2, 3, 4, 5}
-	m, err := New(2, 3, data)
 
+	m, err := New(2, 3, data)
 	if !errors.Is(err, nil) {
 		t.Logf("Err should be %v but it's %v", nil, err)
 		t.Fail()
@@ -79,6 +79,50 @@ func TestNewDataChange(t *testing.T) {
 	data[0] = 25
 	if m.values[0] != data[0] {
 		t.Logf("Value of the matrix should be %f but it's %f", data[0], m.values[0])
+		t.Fail()
+	}
+}
+
+func TestCopy(t *testing.T) {
+	t.Parallel()
+
+	aExpectedValues := []float64{0, 2, 4, 6, 8, 10}
+	bExpectedValues := []float64{0, 1, 2, 3, 4, 5}
+	aMatrix := &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}
+	scalar := 2.0
+
+	bMatrix, err := Copy(aMatrix)
+	if !errors.Is(err, nil) {
+		t.Logf("Err should be %v but it's %v", nil, err)
+		t.Fail()
+	}
+
+	if err := aMatrix.Scale(scalar, aMatrix); err != nil {
+		t.Logf("Err should be %v but it's %v", nil, err)
+		t.Fail()
+	}
+
+	for i, v := range aMatrix.values {
+		if v != aExpectedValues[i] {
+			t.Logf("Value of the matrix should be %f but it's %f", aExpectedValues[i], v)
+			t.Fail()
+		}
+	}
+
+	for i, v := range bMatrix.values {
+		if v != bExpectedValues[i] {
+			t.Logf("Value of the matrix should be %f but it's %f", bExpectedValues[i], v)
+			t.Fail()
+		}
+	}
+}
+
+func TestCopyNilMatrix(t *testing.T) {
+	t.Parallel()
+
+	_, err := Copy(nil)
+	if errors.Is(err, nil) {
+		t.Logf("Err should be %v but it's %v", ErrNilMatrix, err)
 		t.Fail()
 	}
 }
@@ -134,9 +178,7 @@ func TestAddSelf(t *testing.T) {
 	aMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
 	bMatrix := &Matrix{[]float64{0, 1, 2, 3}, 2, 2}
 
-	err := aMatrix.Add(aMatrix, bMatrix)
-
-	if !errors.Is(err, nil) {
+	if err := aMatrix.Add(aMatrix, bMatrix); !errors.Is(err, nil) {
 		t.Logf("Err should be %v but it's %v", nil, err)
 		t.Fail()
 	}
@@ -193,9 +235,7 @@ func TestApplyNilFunction(t *testing.T) {
 	rows, cols := 3, 2
 	aMatrix := &Matrix{[]float64{0, 1, 2, 3, 4, 5}, rows, cols}
 
-	err := aMatrix.Apply(nil, aMatrix)
-
-	if !errors.Is(err, ErrNilFunction) {
+	if err := aMatrix.Apply(nil, aMatrix); !errors.Is(err, ErrNilFunction) {
 		t.Logf("Err should be %v but it's %v", ErrNilFunction, err)
 		t.Fail()
 	}

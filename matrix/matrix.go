@@ -31,9 +31,22 @@ func New(r, c int, v []float64) (*Matrix, error) {
 	return m, nil
 }
 
+// Copy creates a new Matrix with the same properties as the given Matrix.
+// It will return an error if "a == nil".
+func Copy(a *Matrix) (*Matrix, error) {
+	if a == nil {
+		return nil, ErrNilMatrix
+	}
+
+	values := make([]float64, a.rows*a.columns)
+	mCopy := &Matrix{values, a.rows, a.columns}
+	copy(mCopy.values, a.values)
+	return mCopy, nil
+}
+
 // Add adds "a" and "b" element-wise, placing the result in the receiver.
 // It will return an error if the two matrices do not have the same dimensions.
-// It will also return an error if "b == nil" or "a == nil".
+// It will also return an error if "a == nil" or "b == nil".
 func (m *Matrix) Add(a, b *Matrix) error {
 	if a == nil || b == nil {
 		return ErrNilMatrix

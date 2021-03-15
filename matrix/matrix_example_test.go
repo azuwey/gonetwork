@@ -15,6 +15,23 @@ func ExampleNew() {
 	// [0 1 2 3 4 5]
 }
 
+func ExampleCopy() {
+	// Create a 2 x 3 matrix.
+	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+
+	// Copy the "a" matrix.
+	b, _ := matrix.Copy(a)
+
+	// Change the values of the "a" matrix.
+	a.Scale(2, a)
+
+	fmt.Println(a.Raw())
+	fmt.Println(b.Raw())
+	// Output:
+	// [0 2 4 6 8 10]
+	// [0 1 2 3 4 5]
+}
+
 func ExampleNew_zeros() {
 	// Create a 2 x 3 zero matrix.
 	m, _ := matrix.New(2, 3, nil)
