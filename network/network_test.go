@@ -16,7 +16,7 @@ func TestNew(t *testing.T) {
 func TestFeedForward(t *testing.T) {
 	inputs, _ := matrix.New(2, 1, []float64{0, 1})
 	network, _ := New(2, 2, 1, 0.1)
-	guess, _ := network.FeedForward(inputs, func(v float64, _, _ int) float64 {
+	guess, _ := network.Predict(inputs, func(v float64, _, _ int) float64 {
 		return 1 / (1 + math.Exp(-v))
 	})
 
@@ -60,7 +60,7 @@ func TestTrain_xor(t *testing.T) {
 
 	for _, trainingData := range trainingDatas {
 		inputs, _ := matrix.New(2, 1, trainingData.inputs)
-		guesses, _ := network.FeedForward(inputs, sigmoid)
+		guesses, _ := network.Predict(inputs, sigmoid)
 
 		for _, target := range trainingData.targets {
 			if target == 0 {

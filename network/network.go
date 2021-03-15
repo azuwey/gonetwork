@@ -54,8 +54,46 @@ func New(i, h, o int, lr float64) (*Network, error) {
 	return n, nil
 }
 
-// FeedForward ...
-func (n *Network) FeedForward(i *matrix.Matrix, fn func(v float64, r, c int) float64) (*matrix.Matrix, error) {
+// calculateLayerValues returns the calculated values of a "l" layer, with "w" weights, "b" biases.
+// It also performs the normalizations of the values, but also returns the not normalized values.
+// If any of the matrices nil it will return an error.
+// The return tuple will be in this order (notNormalizedValues, normalizedValues, error).
+func calculateLayerValues(l, w, b *matrix.Matrix, fn func(v float64, r, c int) float64) (*matrix.Matrix, *matrix.Matrix, error) {
+	if l == nil {
+		return nil, nil, ErrNilMatrix
+	}
+
+	if w == nil {
+		return nil, nil, ErrNilMatrix
+	}
+
+	if b == nil {
+		return nil, nil, ErrNilMatrix
+	}
+
+	v := &matrix.Matrix{}
+	if err := v.MatrixProduct(w, l); !errors.Is(err, nil) {
+		return nil, nil, err
+	}
+
+	if err := v.Add(b, v); !errors.Is(err, nil) {
+		return nil, nil, err
+	}
+
+	nv, err := matrix.Copy(v)
+	if !errors.Is(err, nil) {
+		return nil, nil, err
+	}
+
+	if err := nv.Apply(fn, nv); !errors.Is(err, nil) {
+		return nil, nil, err
+	}
+
+	return nv, v, nil
+}
+
+// Predict ...
+func (n *Network) Predict(i *matrix.Matrix, fn func(v float64, r, c int) float64) (*matrix.Matrix, error) {
 	if i == nil {
 		return nil, ErrNilMatrix
 	}
@@ -64,37 +102,22 @@ func (n *Network) FeedForward(i *matrix.Matrix, fn func(v float64, r, c int) flo
 		return nil, ErrNilFn
 	}
 
-	hiddenValues := &matrix.Matrix{}
-	if err := hiddenValues.MatrixProduct(n.hWeights, i); !errors.Is(err, nil) {
+	_, normalizedHiddenValues, err := calculateLayerValues(i, n.hWeights, n.hBias, fn)
+	if !errors.Is(err, nil) {
 		return nil, err
 	}
 
-	if err := hiddenValues.Add(n.hBias, hiddenValues); !errors.Is(err, nil) {
+	_, normalizedOutputValues, err := calculateLayerValues(normalizedHiddenValues, n.oWeights, n.oBias, fn)
+	if !errors.Is(err, nil) {
 		return nil, err
 	}
 
-	if err := hiddenValues.Apply(fn, hiddenValues); !errors.Is(err, nil) {
-		return nil, err
-	}
-
-	outputValues := &matrix.Matrix{}
-	if err := outputValues.MatrixProduct(n.oWeights, hiddenValues); !errors.Is(err, nil) {
-		return nil, err
-	}
-
-	if err := outputValues.Add(n.oBias, outputValues); !errors.Is(err, nil) {
-		return nil, err
-	}
-
-	if err := outputValues.Apply(fn, outputValues); !errors.Is(err, nil) {
-		return nil, err
-	}
-
-	return outputValues, nil
+	return normalizedOutputValues, nil
 }
 
 // Train ...
 func (n *Network) Train(i *matrix.Matrix, t *matrix.Matrix, aFn matrix.ApplyFn, dFn matrix.ApplyFn) error {
+	/* Error checks */
 	if i == nil {
 		return ErrNilMatrix
 	}
@@ -111,123 +134,101 @@ func (n *Network) Train(i *matrix.Matrix, t *matrix.Matrix, aFn matrix.ApplyFn, 
 		return ErrNilFn
 	}
 
-	hiddenValues := &matrix.Matrix{}
-	if err := hiddenValues.MatrixProduct(n.hWeights, i); !errors.Is(err, nil) {
-		return err
-	}
-
-	if err := hiddenValues.Add(n.hBias, hiddenValues); !errors.Is(err, nil) {
-		return err
-	}
-
-	hiddenRows, hiddenCols := hiddenValues.Dimensions()
-	hiddenRawValues := make([]float64, hiddenRows*hiddenCols)
-	copy(hiddenRawValues, hiddenValues.Raw())
-
-	hiddenOriginal, err := matrix.New(hiddenRows, hiddenCols, hiddenRawValues)
+	hv, nhv, err := calculateLayerValues(i, n.hWeights, n.hBias, aFn)
 	if !errors.Is(err, nil) {
 		return err
 	}
 
-	if err := hiddenValues.Apply(aFn, hiddenValues); !errors.Is(err, nil) {
-		return err
-	}
-
-	outputValues := &matrix.Matrix{}
-	if err := outputValues.MatrixProduct(n.oWeights, hiddenValues); !errors.Is(err, nil) {
-		return err
-	}
-
-	if err := outputValues.Add(n.oBias, outputValues); !errors.Is(err, nil) {
-		return err
-	}
-
-	outputRows, outputCols := outputValues.Dimensions()
-	outputRawValues := make([]float64, outputRows*outputCols)
-	copy(outputRawValues, outputValues.Raw())
-
-	outputOriginal, err := matrix.New(outputRows, outputCols, outputRawValues)
+	ov, nov, err := calculateLayerValues(nhv, n.oWeights, n.oBias, aFn)
 	if !errors.Is(err, nil) {
 		return err
 	}
 
-	if err := outputValues.Apply(aFn, outputValues); !errors.Is(err, nil) {
+	/* Calculate output errors */
+	oe := &matrix.Matrix{}
+	if err := oe.Subtract(t, nov); !errors.Is(err, nil) {
 		return err
 	}
 
-	outputErrors := &matrix.Matrix{}
-	if err := outputErrors.Subtract(t, outputValues); !errors.Is(err, nil) {
+	/* Calculate output gradient */
+	og := &matrix.Matrix{}
+	if err := og.Apply(dFn, ov); !errors.Is(err, nil) {
 		return err
 	}
 
-	outputGradient := &matrix.Matrix{}
-	if err := outputGradient.Apply(dFn, outputOriginal); !errors.Is(err, nil) {
+	if err := og.Multiply(og, oe); !errors.Is(err, nil) {
 		return err
 	}
 
-	if err := outputGradient.Multiply(outputGradient, outputErrors); !errors.Is(err, nil) {
+	if err := og.Scale(n.learningRate, og); !errors.Is(err, nil) {
 		return err
 	}
 
-	if err := outputGradient.Scale(n.learningRate, outputGradient); !errors.Is(err, nil) {
+	/* To calculate the deltas between the output and the hidden nodes, we transpose the hidden nodes */
+	ht := &matrix.Matrix{}
+	if err := ht.Transpose(nhv); !errors.Is(err, nil) {
 		return err
 	}
 
-	hiddenTransposed := &matrix.Matrix{}
-	if err := hiddenTransposed.Transpose(hiddenValues); !errors.Is(err, nil) {
+	/* Calculate the deltas between the output and the hidden nodes */
+	hd := &matrix.Matrix{}
+	if err := hd.MatrixProduct(og, ht); !errors.Is(err, nil) {
 		return err
 	}
 
-	hiddenDeltas := &matrix.Matrix{}
-	if err := hiddenDeltas.MatrixProduct(outputGradient, hiddenTransposed); !errors.Is(err, nil) {
+	/* Apply the calculated deltas to the output weights */
+	if err := n.oWeights.Add(n.oWeights, hd); !errors.Is(err, nil) {
 		return err
 	}
 
-	if err := n.oWeights.Add(hiddenDeltas, n.oWeights); !errors.Is(err, nil) {
+	/* Apply the gradient to the output biases */
+	if err := n.oBias.Add(n.oBias, og); !errors.Is(err, nil) {
 		return err
 	}
 
-	if err := n.oBias.Add(n.oBias, outputGradient); !errors.Is(err, nil) {
+	/* Calculate hidden errors */
+	he := &matrix.Matrix{}
+	if err := he.Transpose(n.oWeights); !errors.Is(err, nil) {
 		return err
 	}
 
-	hiddenErrors := &matrix.Matrix{}
-	if err := hiddenErrors.Transpose(n.oWeights); !errors.Is(err, nil) {
+	if err := he.MatrixProduct(he, oe); !errors.Is(err, nil) {
 		return err
 	}
 
-	if err := hiddenErrors.MatrixProduct(hiddenErrors, outputErrors); !errors.Is(err, nil) {
+	/* Calculate hidden gradient */
+	hg := &matrix.Matrix{}
+	if err := hg.Apply(dFn, hv); !errors.Is(err, nil) {
 		return err
 	}
 
-	hiddenGradient := &matrix.Matrix{}
-	if err := hiddenGradient.Apply(dFn, hiddenOriginal); !errors.Is(err, nil) {
+	if err := hg.Multiply(hg, he); !errors.Is(err, nil) {
 		return err
 	}
 
-	if err := hiddenGradient.Multiply(hiddenGradient, hiddenErrors); !errors.Is(err, nil) {
+	if err := hg.Scale(n.learningRate, hg); !errors.Is(err, nil) {
 		return err
 	}
 
-	if err := hiddenGradient.Scale(n.learningRate, hiddenGradient); !errors.Is(err, nil) {
+	/* To calculate the deltas between the hidden and the input nodes, we transpose the input nodes */
+	it := &matrix.Matrix{}
+	if err := it.Transpose(i); !errors.Is(err, nil) {
 		return err
 	}
 
-	inputTransposed := &matrix.Matrix{}
-	if err := inputTransposed.Transpose(i); !errors.Is(err, nil) {
+	/* Calculate the deltas between the hidden and the input nodes */
+	id := &matrix.Matrix{}
+	if err := id.MatrixProduct(hg, it); !errors.Is(err, nil) {
 		return err
 	}
 
-	inputDeltas := &matrix.Matrix{}
-	if err := inputDeltas.MatrixProduct(hiddenGradient, inputTransposed); !errors.Is(err, nil) {
+	/* Apply the calculated deltas to the hidden weights */
+	if err := n.hWeights.Add(n.hWeights, id); !errors.Is(err, nil) {
 		return err
 	}
 
-	if err := n.hWeights.Add(inputDeltas, n.hWeights); !errors.Is(err, nil) {
-		return err
-	}
-
-	if err := n.hBias.Add(n.hBias, hiddenGradient); !errors.Is(err, nil) {
+	/* Apply the gradient to the hidden biases */
+	if err := n.hBias.Add(n.hBias, hg); !errors.Is(err, nil) {
 		return err
 	}
 
