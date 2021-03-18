@@ -266,10 +266,7 @@ func (m *Matrix) Values() [][]float64 {
 	values := make([][]float64, m.rows)
 
 	for rIndex := range values {
-		values[rIndex] = make([]float64, m.columns)
-		for cIndex := range values[rIndex] {
-			values[rIndex][cIndex] = m.values[rIndex*m.columns+cIndex]
-		}
+		values[rIndex] = m.values[rIndex*m.columns : rIndex*m.columns+m.columns]
 	}
 
 	return values
