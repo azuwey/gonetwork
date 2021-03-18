@@ -2,10 +2,10 @@ package matrix
 
 import "errors"
 
-// ErrZeroRow is returned by New when number of rows is equal to, or lower than zero.
+// ErrZeroRow is returned by New when number of rows is equal to, or less than zero.
 var ErrZeroRow = errors.New("Matrix: number of rows must be greater than zero")
 
-// ErrZeroCol is returned by New when number of columns equal to, or lower than zero.
+// ErrZeroCol is returned by New when number of columns equal to, or less than zero.
 var ErrZeroCol = errors.New("Matrix: number of rows must be greater than zero")
 
 // ErrDataLength is returned by New when lenght of data is not equal to `r * c`

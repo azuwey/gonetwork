@@ -27,19 +27,19 @@ type Network struct {
 // It will return an error if "ls == nil || len(ls) < 3", "lr <= 0 || lr > 1", "a == nil", "r == nil" .
 func New(ls []int, lr float64, a *ActivationFunction, r *rand.Rand) (*Network, error) {
 	if ls == nil || len(ls) < 3 {
-		return nil, nil // TODO: Error
+		return nil, ErrLayerStructureLength
 	}
 
 	if lr <= 0 || lr > 1 {
-		return nil, nil // TODO: Error
+		return nil, ErrLearningRateRange
 	}
 
 	if a == nil {
-		return nil, nil // TODO: Error
+		return nil, ErrNilActivationFn
 	}
 
 	if r == nil {
-		return nil, nil // TODO: Error
+		return nil, ErrNilRand
 	}
 
 	ly := make([]*Layer, len(ls)-1)
