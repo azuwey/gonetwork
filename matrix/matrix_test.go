@@ -14,7 +14,8 @@ func TestNew(t *testing.T) {
 	}{
 		{2, 2, []float64{0, 1, 2, 3}, []float64{0, 1, 2, 3}, nil},
 		{2, 2, nil, []float64{0, 0, 0, 0}, nil},
-		{0, 0, nil, nil, ErrZeroRowOrCol},
+		{0, 0, nil, nil, ErrZeroRow},
+		{1, 0, nil, nil, ErrZeroCol},
 		{2, 2, []float64{0}, nil, ErrDataLength},
 	}
 
@@ -136,7 +137,7 @@ func TestAdd(t *testing.T) {
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, []float64{0, 2, 4, 6}, nil},
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
 		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
-		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimension},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimensions},
 	}
 
 	for tcIndex, tcValue := range testCases {
@@ -258,14 +259,16 @@ func TestApplyNilMatrix(t *testing.T) {
 }
 
 func TestAt(t *testing.T) {
+	type atArguments struct{ row, col int }
 	testCases := []struct {
 		rows, cols    int
-		checkIndexes  [][]int
+		aruments      []atArguments
 		values        []float64
 		expectedError error
 	}{
-		{3, 2, [][]int{{0, 1}, {0, 1}, {0, 1}}, []float64{-1, -3, -5, -3, -8, -15}, nil},
-		{3, 2, [][]int{{2}}, []float64{-1, -3, -5, -3, -8, -15}, ErrOutOfBounds},
+		{3, 2, []atArguments{{0, 0}, {0, 1}, {1, 0}, {1, 1}, {2, 0}, {2, 1}}, []float64{-1, -3, -5, -3, -8, -15}, nil},
+		{3, 2, []atArguments{{3, 1}}, []float64{-1, -3, -5, -3, -8, -15}, ErrRowOutOfBounds},
+		{3, 2, []atArguments{{1, 3}}, []float64{-1, -3, -5, -3, -8, -15}, ErrColOutOfBounds},
 	}
 
 	for tcIndex, tcValue := range testCases {
@@ -275,22 +278,20 @@ func TestAt(t *testing.T) {
 
 			aMatrix := &Matrix{tcValue.values, tcValue.rows, tcValue.cols}
 
-			for rIndex, r := range tcValue.checkIndexes {
-				for _, c := range r {
-					v, err := aMatrix.At(rIndex, c)
+			for _, arument := range tcValue.aruments {
+				v, err := aMatrix.At(arument.row, arument.col)
 
-					if tcValue.expectedError != nil {
-						if !errors.Is(err, tcValue.expectedError) {
-							t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
-							t.Fail()
-						}
-						return
-					}
-
-					if v != tcValue.values[rIndex*tcValue.cols+c] {
-						t.Logf("Value of the matrix should be %f but it's %f", tcValue.values[rIndex*tcValue.cols+c], v)
+				if tcValue.expectedError != nil {
+					if !errors.Is(err, tcValue.expectedError) {
+						t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
 						t.Fail()
 					}
+					return
+				}
+
+				if v != tcValue.values[arument.row*tcValue.cols+arument.col] {
+					t.Logf("Value of the matrix should be %f but it's %f", tcValue.values[arument.row*tcValue.cols+arument.col], v)
+					t.Fail()
 				}
 			}
 		})
@@ -403,7 +404,7 @@ func TestMultiply(t *testing.T) {
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, []float64{0, 1, 4, 9}, nil},
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
 		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
-		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimension},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimensions},
 	}
 
 	for tcIndex, tcValue := range testCases {
@@ -547,7 +548,7 @@ func TestSubtract(t *testing.T) {
 		{&Matrix{[]float64{1, 2, 3, 4}, 2, 2}, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, []float64{1, 1, 1, 1}, nil},
 		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, nil, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
 		{nil, &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrNilMatrix},
-		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimension},
+		{&Matrix{[]float64{0, 1, 2, 3}, 2, 2}, &Matrix{[]float64{0, 1}, 1, 2}, &Matrix{[]float64{}, 0, 0}, nil, ErrDifferentDimensions},
 	}
 
 	for tcIndex, tcValue := range testCases {

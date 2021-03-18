@@ -14,8 +14,12 @@ type ApplyFn func(v float64, r, c int) float64
 // If the length of the "v" is "r * c" it will be used as the underlaying slice otherwise it will return an error.
 // It will also return an error if "r <= 0" of "c <= 0".
 func New(r, c int, v []float64) (*Matrix, error) {
-	if r <= 0 || c <= 0 {
-		return nil, ErrZeroRowOrCol
+	if r <= 0 {
+		return nil, ErrZeroRow
+	}
+
+	if c <= 0 {
+		return nil, ErrZeroCol
 	}
 
 	if v == nil {
@@ -55,7 +59,7 @@ func (m *Matrix) Add(a, b *Matrix) error {
 	aRows, aCols := a.Dimensions()
 	bRows, bCols := b.Dimensions()
 	if aRows != bRows || aCols != bCols {
-		return ErrDifferentDimension
+		return ErrDifferentDimensions
 	}
 
 	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
@@ -104,8 +108,12 @@ func (m *Matrix) Apply(fn ApplyFn, a *Matrix) error {
 // Indexing is zero-based, so the first row will be at "0" and the last row will be at "numberOfRows - 1" same for the columns.
 // It will return an error if "r" bigger than the number of rows or "c" is bigger than the number columns.
 func (m *Matrix) At(r, c int) (float64, error) {
-	if r > m.rows-1 || c > m.columns-1 {
-		return 0, ErrOutOfBounds
+	if r > m.rows-1 {
+		return 0, ErrRowOutOfBounds
+	}
+
+	if c > m.columns-1 {
+		return 0, ErrColOutOfBounds
 	}
 
 	return m.values[r*m.columns+c], nil
@@ -158,7 +166,7 @@ func (m *Matrix) Multiply(a, b *Matrix) error {
 	aRows, aCols := a.Dimensions()
 	bRows, bCols := b.Dimensions()
 	if aRows != bRows || aCols != bCols {
-		return ErrDifferentDimension
+		return ErrDifferentDimensions
 	}
 
 	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
@@ -214,7 +222,7 @@ func (m *Matrix) Subtract(a, b *Matrix) error {
 	aRows, aCols := a.Dimensions()
 	bRows, bCols := b.Dimensions()
 	if aRows != bRows || aCols != bCols {
-		return ErrDifferentDimension
+		return ErrDifferentDimensions
 	}
 
 	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
