@@ -8,17 +8,92 @@ import (
 
 // ActivationFunction is an alias for the type of the activation functions
 type ActivationFunction struct {
-	aFn, dFn matrix.ApplyFn
+	aFn, dFn func(*matrix.Matrix) matrix.ApplyFn
 }
 
-// List of all the available activation functions
-var (
-	LogisticSigmoid *ActivationFunction = &ActivationFunction{
-		aFn: func(v float64, _, _ int) float64 {
+// LogisticSigmoid ...
+var LogisticSigmoid *ActivationFunction = &ActivationFunction{
+	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
 			return 1 / (1 + math.Exp(-v))
-		},
-		dFn: func(v float64, r, c int) float64 {
+		}
+	},
+	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
 			return v * (1 - v)
-		},
-	}
-)
+		}
+	},
+}
+
+// TanH ...
+var TanH *ActivationFunction = &ActivationFunction{
+	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
+			return math.Tanh(v)
+		}
+	},
+	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
+			return 1 - math.Pow(v, 2)
+		}
+	},
+}
+
+// ReLU ...
+var ReLU *ActivationFunction = &ActivationFunction{
+	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
+			return math.Max(0, v)
+		}
+	},
+	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
+			if v > 0 {
+				return 1
+			} else {
+				return 0
+			}
+		}
+	},
+}
+
+// LeakyReLU ...
+var LeakyReLU *ActivationFunction = &ActivationFunction{
+	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
+			if v > 0 {
+				return v
+			} else {
+				return 0.2 * v
+			}
+		}
+	},
+	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
+			if v > 0 {
+				return 1
+			} else {
+				return v / 0.2
+			}
+		}
+	},
+}
+
+// Softmax ...
+var Softmax *ActivationFunction = &ActivationFunction{
+	aFn: func(m *matrix.Matrix) matrix.ApplyFn {
+		sum := 0.0
+		for _, v := range m.Raw() {
+			sum += math.Exp(v)
+		}
+
+		return func(v float64, _, _ int, _ []float64) float64 {
+			return math.Exp(v) / sum
+		}
+	},
+	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
+			return v * (1 - v)
+		}
+	},
+}

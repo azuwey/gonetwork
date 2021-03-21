@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-const float64EqualityThreshold = 0.1
+const float64EqualityThreshold = 0.000001
 
 func TestNew(t *testing.T) {
 	testCases := []struct {
@@ -31,12 +31,18 @@ func TestNew(t *testing.T) {
 
 func TestPredict(t *testing.T) {
 	testCases := []struct {
-		inputs, targets    []float64
-		activationFunction *ActivationFunction
-		expectedError      error
+		inputs, targets []float64
+		layers          []Layer
+		expectedError   error
 	}{
-		{[]float64{0, 0}, []float64{0.657095}, LogisticSigmoid, nil},
-		{[]float64{0, 0}, []float64{0.657095}, LogisticSigmoid, nil},
+		{[]float64{0, 0}, []float64{0.657095}, []Layer{{2, nil}, {2, LogisticSigmoid}, {1, LogisticSigmoid}}, nil},
+		{[]float64{0, 0}, []float64{0.680450}, []Layer{{2, nil}, {2, TanH}, {1, TanH}}, nil},
+		{[]float64{0, 0}, []float64{0.794339}, []Layer{{2, nil}, {2, ReLU}, {1, ReLU}}, nil},
+		{[]float64{0, 0}, []float64{0.800759}, []Layer{{2, nil}, {2, LeakyReLU}, {1, LeakyReLU}}, nil},
+		{[]float64{0, 0}, []float64{0.189601, 0.810399}, []Layer{{2, nil}, {20, LogisticSigmoid}, {2, Softmax}}, nil},
+		{[]float64{0, 0}, []float64{0.139501, 0.860499}, []Layer{{2, nil}, {20, TanH}, {2, Softmax}}, nil},
+		{[]float64{0, 0}, []float64{0.097127, 0.902873}, []Layer{{2, nil}, {20, ReLU}, {2, Softmax}}, nil},
+		{[]float64{0, 0}, []float64{0.102186, 0.897814}, []Layer{{2, nil}, {20, LeakyReLU}, {2, Softmax}}, nil},
 	}
 
 	for tcIndex, tcValue := range testCases {
@@ -45,7 +51,7 @@ func TestPredict(t *testing.T) {
 			t.Parallel()
 
 			r := rand.New(rand.NewSource(0))
-			n, _ := New([]int{len(tcValue.inputs), 2, len(tcValue.targets)}, 0.1, tcValue.activationFunction, r)
+			n, _ := New(tcValue.layers, 0.1, r)
 			prediction, err := n.Predict(tcValue.inputs)
 
 			if tcValue.expectedError != nil {
@@ -86,14 +92,13 @@ func TestTrain(t *testing.T) {
 		name                   string
 		learningRate           float64
 		epocs                  int
-		activationFunction     *ActivationFunction
 		expectedError          error
-		layerStructure         []int
+		layerStructure         []Layer
 		learningData, testData []dataSet
 	}{
 		{
-			"XOR", 0.01, 500000, LogisticSigmoid, nil, []int{
-				2, 2, 1,
+			"XOR", 0.01, 500000, nil, []Layer{
+				{2, nil}, {2, LeakyReLU}, {1, LeakyReLU},
 			}, []dataSet{
 				{[]float64{0, 0}, []float64{0}},
 				{[]float64{0, 1}, []float64{1}},
@@ -114,7 +119,7 @@ func TestTrain(t *testing.T) {
 			t.Parallel()
 
 			r := rand.New(rand.NewSource(0))
-			n, _ := New(tcValue.layerStructure, tcValue.learningRate, tcValue.activationFunction, r)
+			n, _ := New(tcValue.layerStructure, tcValue.learningRate, r)
 
 			for i := 0; i < tcValue.epocs; i++ {
 				traingingDataIndex := rand.Intn(len(tcValue.learningData))
@@ -135,7 +140,7 @@ func TestTrain(t *testing.T) {
 					if target == 0 {
 						for i, v := range guesses {
 							if math.Abs(v-d.targets[i]) > float64EqualityThreshold {
-								t.Logf("Value of the prediction should be %f but it's %f", d.targets[i], v)
+								t.Logf("Value of the prediction should be %f but it's %f, targets: %v, inputs: %v", d.targets[i], v, d.targets, d.inputs)
 								t.Fail()
 							}
 						}
