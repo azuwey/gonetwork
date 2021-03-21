@@ -202,7 +202,7 @@ func TestApply(t *testing.T) {
 	expectedCols := []int{0, 1, 0, 1, 0, 1}
 
 	currentIndex := 0
-	err := aMatrix.Apply(func(v float64, r, c int) float64 {
+	err := aMatrix.Apply(func(v float64, r, c int, s []float64) float64 {
 		if r != expectedRows[currentIndex] {
 			t.Logf("Row should be %d but it's %d", expectedRows[currentIndex], r)
 			t.Fail()
@@ -210,6 +210,12 @@ func TestApply(t *testing.T) {
 
 		if c != expectedCols[currentIndex] {
 			t.Logf("Column should be %d but it's %d", expectedCols[currentIndex], r)
+			t.Fail()
+		}
+
+		if s[r*aMatrix.columns+c] != v {
+			t.Logf("Value should be %f but it's %f", s[r*aMatrix.columns+c], v)
+			t.Logf("r:%d; c:%d; i:%d, s:%v", r, c, r*aMatrix.columns+c, s)
 			t.Fail()
 		}
 
@@ -248,7 +254,7 @@ func TestApplyNilMatrix(t *testing.T) {
 	rows, cols := 3, 2
 	aMatrix := &Matrix{[]float64{0, 1, 2, 3, 4, 5}, rows, cols}
 
-	err := aMatrix.Apply(func(v float64, r, c int) float64 {
+	err := aMatrix.Apply(func(v float64, _, _ int, _ []float64) float64 {
 		return v
 	}, nil)
 

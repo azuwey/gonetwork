@@ -57,7 +57,7 @@ func BenchmarkApply(b *testing.B) {
 	b.ResetTimer()
 
 	for i := 0; i < b.N; i++ {
-		m.Apply(func(v float64, r, c int) float64 {
+		m.Apply(func(v float64, _, _ int, _ []float64) float64 {
 			return v
 		}, m)
 	}
