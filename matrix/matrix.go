@@ -70,8 +70,8 @@ func (m *Matrix) Add(a, b *Matrix) error {
 	m.columns = aCols
 	m.values = make([]float64, m.rows*m.columns)
 
-	for i := range m.values {
-		m.values[i] = aVals[i] + bVals[i]
+	for idx := range m.values {
+		m.values[idx] = aVals[idx] + bVals[idx]
 	}
 
 	return nil
@@ -96,10 +96,10 @@ func (m *Matrix) Apply(fn ApplyFn, a *Matrix) error {
 	m.rows, m.columns = aRows, aCols
 	m.values = make([]float64, m.rows*m.columns)
 
-	for i := range m.values {
-		r := i / m.columns
-		s := append(m.values[:i], aVals[i:]...)
-		m.values[i] = fn(aVals[i], r, i-(r*m.columns), s)
+	for idx := range m.values {
+		r := idx / m.columns
+		s := append(m.values[:idx], aVals[idx:]...)
+		m.values[idx] = fn(aVals[idx], r, idx-(r*m.columns), s)
 	}
 
 	return nil
@@ -147,9 +147,9 @@ func (m *Matrix) MatrixProduct(a, b *Matrix) error {
 	m.columns = bCols
 	m.values = make([]float64, m.rows*m.columns)
 
-	for mIndex := range m.values {
-		for bIndex := 0; bIndex < bRows; bIndex++ {
-			m.values[mIndex] += aVals[((mIndex/bCols)*aCols)+bIndex] * bVals[(bIndex*bCols)+(mIndex%bCols)]
+	for mIdx := range m.values {
+		for bIdx := 0; bIdx < bRows; bIdx++ {
+			m.values[mIdx] += aVals[((mIdx/bCols)*aCols)+bIdx] * bVals[(bIdx*bCols)+(mIdx%bCols)]
 		}
 	}
 
@@ -178,8 +178,8 @@ func (m *Matrix) Multiply(a, b *Matrix) error {
 	m.columns = aCols
 	m.values = make([]float64, m.rows*m.columns)
 
-	for i := range m.values {
-		m.values[i] = aVals[i] * bVals[i]
+	for idx := range m.values {
+		m.values[idx] = aVals[idx] * bVals[idx]
 	}
 
 	return nil
@@ -205,8 +205,8 @@ func (m *Matrix) Scale(f float64, a *Matrix) error {
 	m.rows, m.columns = aRows, aCols
 	m.values = make([]float64, m.rows*m.columns)
 
-	for i := range m.values {
-		m.values[i] = f * aVals[i]
+	for idx := range m.values {
+		m.values[idx] = f * aVals[idx]
 	}
 
 	return nil
@@ -234,8 +234,8 @@ func (m *Matrix) Subtract(a, b *Matrix) error {
 	m.columns = aCols
 	m.values = make([]float64, m.rows*m.columns)
 
-	for i := range m.values {
-		m.values[i] = aVals[i] - bVals[i]
+	for idx := range m.values {
+		m.values[idx] = aVals[idx] - bVals[idx]
 	}
 
 	return nil
@@ -255,8 +255,8 @@ func (m *Matrix) Transpose(a *Matrix) error {
 	m.rows, m.columns = aCols, aRows
 	m.values = make([]float64, m.rows*m.columns)
 
-	for i := range m.values {
-		m.values[i] = aVals[(i%aRows*aCols)+(i/aRows)]
+	for idx := range m.values {
+		m.values[idx] = aVals[(idx%aRows*aCols)+(idx/aRows)]
 	}
 
 	return nil

@@ -40,9 +40,9 @@ func TestNew(t *testing.T) {
 					t.Fail()
 				}
 
-				for i, v := range m.values {
-					if v != tcValue.expectedValues[i] {
-						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+				for idx, v := range m.values {
+					if v != tcValue.expectedValues[idx] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[idx], v)
 						t.Fail()
 					}
 				}
@@ -70,9 +70,9 @@ func TestNewDataChange(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range m.values {
-		if v != data[i] {
-			t.Logf("Value of the matrix should be %f but it's %f", data[i], v)
+	for idx, v := range m.values {
+		if v != data[idx] {
+			t.Logf("Value of the matrix should be %f but it's %f", data[idx], v)
 			t.Fail()
 		}
 	}
@@ -103,16 +103,16 @@ func TestCopy(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.values {
-		if v != aExpectedValues[i] {
-			t.Logf("Value of the matrix should be %f but it's %f", aExpectedValues[i], v)
+	for idx, v := range aMatrix.values {
+		if v != aExpectedValues[idx] {
+			t.Logf("Value of the matrix should be %f but it's %f", aExpectedValues[idx], v)
 			t.Fail()
 		}
 	}
 
-	for i, v := range bMatrix.values {
-		if v != bExpectedValues[i] {
-			t.Logf("Value of the matrix should be %f but it's %f", bExpectedValues[i], v)
+	for idx, v := range bMatrix.values {
+		if v != bExpectedValues[idx] {
+			t.Logf("Value of the matrix should be %f but it's %f", bExpectedValues[idx], v)
 			t.Fail()
 		}
 	}
@@ -161,9 +161,9 @@ func TestAdd(t *testing.T) {
 					t.Fail()
 				}
 
-				for i, v := range tcValue.dMatrix.values {
-					if v != tcValue.expectedValues[i] {
-						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+				for idx, v := range tcValue.dMatrix.values {
+					if v != tcValue.expectedValues[idx] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[idx], v)
 						t.Fail()
 					}
 				}
@@ -184,9 +184,9 @@ func TestAddSelf(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.values {
-		if v != expectedValues[i] {
-			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
+	for idx, v := range aMatrix.values {
+		if v != expectedValues[idx] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[idx], v)
 			t.Fail()
 		}
 	}
@@ -228,9 +228,9 @@ func TestApply(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.values {
-		if v != expectedValues[i] {
-			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
+	for idx, v := range aMatrix.values {
+		if v != expectedValues[idx] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[idx], v)
 			t.Fail()
 		}
 	}
@@ -368,9 +368,9 @@ func TestMatrixProduct(t *testing.T) {
 					t.Fail()
 				}
 
-				for i, v := range tcValue.dMatrix.values {
-					if v != tcValue.expectedValues[i] {
-						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+				for idx, v := range tcValue.dMatrix.values {
+					if v != tcValue.expectedValues[idx] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[idx], v)
 						t.Fail()
 					}
 				}
@@ -393,9 +393,9 @@ func TestMatrixProductSelf(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.values {
-		if v != expectedValues[i] {
-			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
+	for idx, v := range aMatrix.values {
+		if v != expectedValues[idx] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[idx], v)
 			t.Fail()
 		}
 	}
@@ -434,9 +434,9 @@ func TestMultiply(t *testing.T) {
 					t.Fail()
 				}
 
-				for i, v := range tcValue.dMatrix.values {
-					if v != tcValue.expectedValues[i] {
-						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+				for idx, v := range tcValue.dMatrix.values {
+					if v != tcValue.expectedValues[idx] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[idx], v)
 						t.Fail()
 					}
 				}
@@ -459,9 +459,9 @@ func TestMultiplySelf(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.values {
-		if v != expectedValues[i] {
-			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
+	for idx, v := range aMatrix.values {
+		if v != expectedValues[idx] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[idx], v)
 			t.Fail()
 		}
 	}
@@ -473,9 +473,9 @@ func TestRaw(t *testing.T) {
 	values := []float64{-1, -3, -5}
 	aMatrix := &Matrix{values, 1, 3}
 
-	for i, v := range aMatrix.Raw() {
-		if v != values[i] {
-			t.Logf("Value of the matrix should be %f but it's %f", values[i], v)
+	for idx, v := range aMatrix.Raw() {
+		if v != values[idx] {
+			t.Logf("Value of the matrix should be %f but it's %f", values[idx], v)
 			t.Fail()
 		}
 	}
@@ -512,9 +512,9 @@ func TestScale(t *testing.T) {
 					t.Fail()
 				}
 
-				for i, v := range tcValue.bMatrix.values {
-					if v != tcValue.expectedValues[i] {
-						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+				for idx, v := range tcValue.bMatrix.values {
+					if v != tcValue.expectedValues[idx] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[idx], v)
 						t.Fail()
 					}
 				}
@@ -537,9 +537,9 @@ func TestScaleSelf(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.values {
-		if v != expectedValues[i] {
-			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
+	for idx, v := range aMatrix.values {
+		if v != expectedValues[idx] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[idx], v)
 			t.Fail()
 		}
 	}
@@ -578,9 +578,9 @@ func TestSubtract(t *testing.T) {
 					t.Fail()
 				}
 
-				for i, v := range tcValue.dMatrix.values {
-					if v != tcValue.expectedValues[i] {
-						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+				for idx, v := range tcValue.dMatrix.values {
+					if v != tcValue.expectedValues[idx] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[idx], v)
 						t.Fail()
 					}
 				}
@@ -603,9 +603,9 @@ func TestSubtractSelf(t *testing.T) {
 		t.Fail()
 	}
 
-	for i, v := range aMatrix.values {
-		if v != expectedValues[i] {
-			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[i], v)
+	for idx, v := range aMatrix.values {
+		if v != expectedValues[idx] {
+			t.Logf("Value of the matrix should be %f but it's %f", expectedValues[idx], v)
 			t.Fail()
 		}
 	}
@@ -645,9 +645,9 @@ func TestTranspose(t *testing.T) {
 					t.Fail()
 				}
 
-				for i, v := range tcValue.aMatrix.values {
-					if v != tcValue.expectedValues[i] {
-						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[i], v)
+				for idx, v := range tcValue.aMatrix.values {
+					if v != tcValue.expectedValues[idx] {
+						t.Logf("Value of the matrix should be %f but it's %f", tcValue.expectedValues[idx], v)
 						t.Fail()
 					}
 				}
