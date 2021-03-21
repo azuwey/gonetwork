@@ -2,7 +2,7 @@ package network
 
 import "errors"
 
-// ErrNilActivationFn is returned by New when `a` is nil.
+// ErrNilActivationFn is returned by New when `activationFunction` is nil in any layer except the input layer.
 var ErrNilActivationFn = errors.New("Network: activation function must not be nil")
 
 // ErrNilLayerStruct is returned by New when `ls` is nil.
@@ -15,4 +15,4 @@ var ErrLayerStructureLength = errors.New("Network: length of the layer structure
 var ErrLearningRateRange = errors.New("Network: learning rate range must be greater than zero and less than one")
 
 // ErrNilRand is returned by New when `r` is nil.
-var ErrNilRand = errors.New("Network: learning rate range must be greater than zero and less than one")
+var ErrNilRand = errors.New("Network: random source must not be nil")
