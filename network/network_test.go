@@ -130,6 +130,28 @@ func TestTrain(t *testing.T) {
 				{[]float64{1, 1}, []float64{0}},
 			},
 		},
+		{
+			"4-bit counter", 0.1, 30000, nil, []Layer{
+				{4, nil}, {16, TanH}, {4, LogisticSigmoid},
+			}, []dataSet{
+				{[]float64{0, 0, 0, 0}, []float64{0, 0, 0, 1}},
+				{[]float64{0, 0, 0, 1}, []float64{0, 0, 1, 0}},
+				{[]float64{0, 0, 1, 0}, []float64{0, 0, 1, 1}},
+				{[]float64{0, 0, 1, 1}, []float64{0, 1, 0, 0}},
+				{[]float64{0, 1, 0, 0}, []float64{0, 1, 0, 1}},
+				{[]float64{0, 1, 0, 1}, []float64{0, 1, 1, 0}},
+				{[]float64{0, 1, 1, 0}, []float64{0, 1, 1, 1}},
+				{[]float64{0, 1, 1, 1}, []float64{1, 0, 0, 0}},
+				{[]float64{1, 0, 0, 0}, []float64{1, 0, 0, 1}},
+				{[]float64{1, 0, 0, 1}, []float64{1, 0, 1, 0}},
+				{[]float64{1, 0, 1, 0}, []float64{1, 0, 1, 1}},
+				{[]float64{1, 0, 1, 1}, []float64{1, 1, 0, 0}},
+				{[]float64{1, 1, 0, 0}, []float64{1, 1, 0, 1}},
+				{[]float64{1, 1, 1, 0}, []float64{1, 1, 1, 1}},
+			}, []dataSet{
+				{[]float64{1, 1, 0, 1}, []float64{1, 1, 1, 0}},
+			},
+		},
 	}
 
 	for _, tcValue := range testCases {
@@ -141,11 +163,16 @@ func TestTrain(t *testing.T) {
 			n, _ := New(tcValue.layerStructure, tcValue.learningRate, r)
 
 			for e := 0; e < tcValue.epoch; e++ {
-				traingingDataIndex := rand.Intn(len(tcValue.learningData))
-				if err := n.Train(tcValue.learningData[traingingDataIndex].inputs, tcValue.learningData[traingingDataIndex].targets); !errors.Is(err, nil) {
-					if tcValue.expectedError == nil {
-						t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
-						t.FailNow()
+				r.Shuffle(len(tcValue.learningData), func(i, j int) {
+					tcValue.learningData[i], tcValue.learningData[j] = tcValue.learningData[j], tcValue.learningData[i]
+				})
+
+				for _, ld := range tcValue.learningData {
+					if err := n.Train(ld.inputs, ld.targets); !errors.Is(err, nil) {
+						if tcValue.expectedError == nil {
+							t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
+							t.FailNow()
+						}
 					}
 				}
 			}
