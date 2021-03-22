@@ -10,7 +10,7 @@ import (
 	"github.com/azuwey/gonetwork/matrix"
 )
 
-const float64EqualityThreshold = 0.000001
+const float64EqualityThreshold = 0.02
 
 func TestNew(t *testing.T) {
 	testCases := []struct {
@@ -110,14 +110,14 @@ func TestTrain(t *testing.T) {
 	testCases := []struct {
 		name                   string
 		learningRate           float64
-		epocs                  int
+		epoch                  int
 		expectedError          error
 		layerStructure         []Layer
 		learningData, testData []dataSet
 	}{
 		{
-			"XOR", 0.01, 500000, nil, []Layer{
-				{2, nil}, {2, LeakyReLU}, {1, LeakyReLU},
+			"XOR", 0.1, 30000, nil, []Layer{
+				{2, nil}, {2, TanH}, {1, LogisticSigmoid},
 			}, []dataSet{
 				{[]float64{0, 0}, []float64{0}},
 				{[]float64{0, 1}, []float64{1}},
@@ -140,29 +140,26 @@ func TestTrain(t *testing.T) {
 			r := rand.New(rand.NewSource(0))
 			n, _ := New(tcValue.layerStructure, tcValue.learningRate, r)
 
-			for e := 0; e < tcValue.epocs; e++ {
+			for e := 0; e < tcValue.epoch; e++ {
 				traingingDataIndex := rand.Intn(len(tcValue.learningData))
 				if err := n.Train(tcValue.learningData[traingingDataIndex].inputs, tcValue.learningData[traingingDataIndex].targets); !errors.Is(err, nil) {
 					if tcValue.expectedError == nil {
 						t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
-						t.Fail()
-					} else {
-						return
+						t.FailNow()
 					}
 				}
 			}
 
 			for _, d := range tcValue.testData {
 				guesses, _ := n.Predict(d.inputs)
-
-				for _, target := range d.targets {
-					if target == 0 {
-						for idx, v := range guesses {
-							if math.Abs(v-d.targets[idx]) > float64EqualityThreshold {
-								t.Logf("Value of the prediction should be %f but it's %f, targets: %v, inputs: %v", d.targets[idx], v, d.targets, d.inputs)
-								t.Fail()
-							}
-						}
+				for idx, v := range guesses {
+					if math.IsNaN(v) {
+						t.Logf("Value should not be NaN for target: %v with input: %v", d.targets, d.inputs)
+						t.Fail()
+					}
+					if math.Abs(v-d.targets[idx]) > float64EqualityThreshold {
+						t.Logf("Value of the prediction should be %f but it's %f, targets: %v, inputs: %v, predictions: %v", d.targets[idx], v, d.targets, d.inputs, guesses)
+						t.Fail()
 					}
 				}
 			}

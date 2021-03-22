@@ -135,10 +135,6 @@ func (n *Network) Train(i, t []float64) error {
 	}
 
 	lastErrVal := &matrix.Matrix{}
-	if lastErrVal.Subtract(tMat, lVals[len(lVals)-1]); !errors.Is(err, nil) {
-		return err
-	}
-
 	for idx := len(n.layers) - 1; idx >= 0; idx-- {
 		e := &matrix.Matrix{}
 		if idx == len(n.layers)-1 {
@@ -153,8 +149,8 @@ func (n *Network) Train(i, t []float64) error {
 			if err := e.MatrixProduct(e, lastErrVal); !errors.Is(err, nil) {
 				return err
 			}
-			lastErrVal = e
 		}
+		lastErrVal = e
 
 		g := &matrix.Matrix{}
 		if err := g.Apply(n.layers[idx].activationFunction.dFn(lVals[idx+1]), lVals[idx+1]); !errors.Is(err, nil) {

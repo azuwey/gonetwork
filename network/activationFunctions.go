@@ -20,7 +20,7 @@ var LogisticSigmoid *ActivationFunction = &ActivationFunction{
 	},
 	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _, _ int, _ []float64) float64 {
-			return v * (1 - v)
+			return (1 - v) * v
 		}
 	},
 }
@@ -48,7 +48,7 @@ var ReLU *ActivationFunction = &ActivationFunction{
 	},
 	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _, _ int, _ []float64) float64 {
-			if v > 0 {
+			if v >= 0 {
 				return 1
 			} else {
 				return 0
@@ -61,19 +61,19 @@ var ReLU *ActivationFunction = &ActivationFunction{
 var LeakyReLU *ActivationFunction = &ActivationFunction{
 	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _, _ int, _ []float64) float64 {
-			if v > 0 {
+			if v >= 0 {
 				return v
 			} else {
-				return 0.2 * v
+				return 0.01 * v
 			}
 		}
 	},
 	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _, _ int, _ []float64) float64 {
-			if v > 0 {
+			if v >= 0 {
 				return 1
 			} else {
-				return v / 0.2
+				return 0.01
 			}
 		}
 	},
