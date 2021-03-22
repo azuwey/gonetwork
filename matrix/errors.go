@@ -27,4 +27,4 @@ var ErrNilMatrix = errors.New("Matrix: matrix must not be nil")
 var ErrBadProductDimension = errors.New("Matrix: the number of columns in `a` matrix must be equal to the number of rows in `b` matrix")
 
 // ErrDifferentDimensions is returned by any operation that is require two matrix as argument, and the dimensions of the matrices not the same.
-var ErrDifferentDimensions = errors.New("Matrix: matrix must not be nil")
+var ErrDifferentDimensions = errors.New("Matrix: the dimensions of the matrices must be the same")

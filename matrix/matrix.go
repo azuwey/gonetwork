@@ -11,7 +11,7 @@ type ApplyFn func(v float64, r, c int, s []float64) float64
 
 // New creates a new Matrix with "r" rows and "c" columns, the "v" must be arranged in row-major order.
 // If "v == nil", a new slice will be allocated with "r * c" size.
-// If the length of the "v" is "r * c" it will be used as the underlaying slice otherwise it will return an error.
+// If the length of the "v" is "r * c" it will be used as the underlaying slice but the changes won't be reflected, otherwise it will return an error.
 // It will also return an error if "r <= 0" of "c <= 0".
 func New(r, c int, v []float64) (*Matrix, error) {
 	if r <= 0 {
@@ -24,6 +24,10 @@ func New(r, c int, v []float64) (*Matrix, error) {
 
 	if v == nil {
 		v = make([]float64, r*c)
+	} else {
+		tmp := make([]float64, len(v))
+		copy(tmp, v)
+		v = tmp
 	}
 
 	if len(v) != r*c {
@@ -191,9 +195,9 @@ func (m *Matrix) Raw() []float64 {
 	return m.values
 }
 
-// Scale multiplies the elements of "a" by "f", placing the result in the receiver.
+// Scale multiplies the elements of "a" by "s", placing the result in the receiver.
 // It will return an error if "a == nil".
-func (m *Matrix) Scale(f float64, a *Matrix) error {
+func (m *Matrix) Scale(s float64, a *Matrix) error {
 	if a == nil {
 		return ErrNilMatrix
 	}
@@ -206,7 +210,7 @@ func (m *Matrix) Scale(f float64, a *Matrix) error {
 	m.values = make([]float64, m.rows*m.columns)
 
 	for idx := range m.values {
-		m.values[idx] = f * aVals[idx]
+		m.values[idx] = s * aVals[idx]
 	}
 
 	return nil
