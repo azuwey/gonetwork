@@ -83,7 +83,7 @@ var LeakyReLU *ActivationFunction = &ActivationFunction{
 var Softmax *ActivationFunction = &ActivationFunction{
 	aFn: func(m *matrix.Matrix) matrix.ApplyFn {
 		sum := 0.0
-		for _, v := range m.Raw() {
+		for _, v := range m.Values {
 			sum += math.Exp(v)
 		}
 

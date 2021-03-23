@@ -1,6 +1,6 @@
 package network
 
-import (
+/*import (
 	"math"
 	"math/rand"
 	"testing"
@@ -211,3 +211,50 @@ func TestPredict(t *testing.T) {
 		})
 	}
 }
+
+func TestTrain(t *testing.T) {
+	testCases := []struct {
+		name          string
+		inputs        []float64
+		targets       []float64
+		expectedError error
+	}{
+		{"Normal", []float64{0.5}, []float64{-0.911547}, nil},
+		{"ErrNilInputSlice", nil, []float64{}, ErrNilInputSlice},
+		{"matrix.ErrZeroRow", []float64{}, []float64{}, matrix.ErrZeroRow},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			n, _ := New([]Layer{
+				{len(tc.inputs), nil},
+				{len(tc.inputs), dummyActivationFunction},
+				{len(tc.inputs), dummyActivationFunction},
+			}, 0.1, rand.New(rand.NewSource(0)))
+
+			vals, err := n.Predict(tc.inputs)
+			if tc.expectedError != nil {
+				if err != tc.expectedError {
+					t.Errorf("Expected error is %v, but got %v", tc.expectedError, err)
+				}
+			} else if err != nil {
+				t.Errorf("Expected error is %v, but got %v", nil, err)
+			} else if n == nil {
+				t.Error("Matrix should not be nil")
+			} else {
+				if len(vals) != len(tc.expectedValues) {
+					t.Errorf("Expected length of layer values is %d, but got %d", len(tc.expectedValues), len(vals))
+				}
+
+				for idx, v := range vals {
+					if !isFloatInThreshold(v, tc.expectedValues[idx]) {
+						t.Errorf("Expected value of the layer is %f, but got %f", tc.expectedValues[idx], v)
+					}
+				}
+			}
+		})
+	}
+}*/

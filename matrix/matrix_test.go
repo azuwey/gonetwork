@@ -34,18 +34,18 @@ func TestNew(t *testing.T) {
 			} else if m == nil {
 				t.Error("Matrix should not be nil")
 			} else {
-				for idx, v := range m.vs {
+				for idx, v := range m.Values {
 					if v != tc.expectedValues[idx] {
 						t.Errorf("Expected value is %f, but got %f", tc.expectedValues[idx], v)
 					}
 				}
 
-				if m.r != tc.rows {
-					t.Errorf("Expected number of rows is %d, but got %d", tc.rows, m.r)
+				if m.Rows != tc.rows {
+					t.Errorf("Expected number of rows is %d, but got %d", tc.rows, m.Rows)
 				}
 
-				if m.c != tc.columns {
-					t.Errorf("Expected number of columns is %d, but got %d", tc.columns, m.c)
+				if m.Columns != tc.columns {
+					t.Errorf("Expected number of columns is %d, but got %d", tc.columns, m.Columns)
 				}
 			}
 		})
@@ -62,8 +62,8 @@ func TestNew(t *testing.T) {
 		} else {
 			tmp := v[0]
 			v[0] = r.Float64()
-			if m.vs[0] == v[0] {
-				t.Errorf("Expected value is %f, but got %f", tmp, m.vs[0])
+			if m.Values[0] == v[0] {
+				t.Errorf("Expected value is %f, but got %f", tmp, m.Values[0])
 			}
 		}
 	})
@@ -94,9 +94,9 @@ func TestCopy(t *testing.T) {
 			} else if m == nil {
 				t.Error("Matrix should not be nil")
 			} else {
-				for idx, v := range m.vs {
-					if v != tc.matrix.vs[idx] {
-						t.Errorf("Expected value is %f, but got %f", tc.matrix.vs[idx], v)
+				for idx, v := range m.Values {
+					if v != tc.matrix.Values[idx] {
+						t.Errorf("Expected value is %f, but got %f", tc.matrix.Values[idx], v)
 					}
 				}
 			}
@@ -113,9 +113,9 @@ func TestCopy(t *testing.T) {
 		if err != nil {
 			t.Errorf("Expected error is %v, but got %v", nil, err)
 		} else {
-			a.vs[0] = r.Float64()
-			if b.vs[0] != v[0] {
-				t.Errorf("Expected value is %f, but got %f", v[0], a.vs[0])
+			a.Values[0] = r.Float64()
+			if b.Values[0] != v[0] {
+				t.Errorf("Expected value is %f, but got %f", v[0], a.Values[0])
 			}
 		}
 	})
@@ -151,7 +151,7 @@ func TestAdd(t *testing.T) {
 			} else if m == nil {
 				t.Error("Matrix should not be nil")
 			} else {
-				for idx, v := range m.vs {
+				for idx, v := range m.Values {
 					if v != tc.expectedValues[idx] {
 						t.Errorf("Expected value is %f, but got %f", tc.expectedValues[idx], v)
 					}
@@ -171,9 +171,9 @@ func TestAdd(t *testing.T) {
 		if err != nil {
 			t.Errorf("Expected error is %v, but got %v", nil, err)
 		} else {
-			a.vs[0] = r.Float64()
-			if b.vs[0] != v[0]*2 {
-				t.Errorf("Expected value is %f, but got %f", v[0]*2, b.vs[0])
+			a.Values[0] = r.Float64()
+			if b.Values[0] != v[0]*2 {
+				t.Errorf("Expected value is %f, but got %f", v[0]*2, b.Values[0])
 			}
 		}
 	})
@@ -212,7 +212,7 @@ func TestApply(t *testing.T) {
 			} else if m == nil {
 				t.Error("Matrix should not be nil")
 			} else {
-				for idx, v := range m.vs {
+				for idx, v := range m.Values {
 					if v != tc.expectedValues[idx] {
 						t.Errorf("Expected value is %f, but got %f", tc.expectedValues[idx], v)
 					}
@@ -235,8 +235,8 @@ func TestApply(t *testing.T) {
 		} else {
 			tmp := v[0]
 			v[0] = r.Float64()
-			if a.vs[0] == v[0] {
-				t.Errorf("Expected value is %f, but got %f", tmp, a.vs[0])
+			if a.Values[0] == v[0] {
+				t.Errorf("Expected value is %f, but got %f", tmp, a.Values[0])
 			}
 		}
 	})
@@ -282,95 +282,7 @@ func TestAt(t *testing.T) {
 	}
 }
 
-func TestDimension(t *testing.T) {
-	testCases := []struct {
-		name                          string
-		matrix                        *Matrix
-		expectedRows, expectedColumns int
-	}{
-		{"Normal [2][2]", &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, 2, 2},
-		{"Normal [1][3]", &Matrix{[]float64{0, 1, 2}, 1, 3}, 1, 3},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			r, c := tc.matrix.Dimensions()
-
-			if r != tc.expectedRows {
-				t.Errorf("Expected number of rows is %d, but got %d", tc.expectedRows, r)
-			}
-
-			if c != tc.expectedColumns {
-				t.Errorf("Expected number of columns is %d, but got %d", tc.expectedColumns, c)
-			}
-		})
-	}
-}
-
-func TestMatrixProduct(t *testing.T) {
-	testCases := []struct {
-		name           string
-		a, b           *Matrix
-		expectedValues []float64
-		expectedError  error
-	}{
-		{"Normal short", &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, []float64{10, 13, 28, 40}, nil},
-		{"Normal long", &Matrix{[]float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 4, 3}, &Matrix{[]float64{0, -1, -2, -3, -4, -5}, 3, 2}, []float64{-10, -13, -28, -40, -46, -67, -64, -94}, nil},
-		{"ErrNilMatrix a", nil, &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, nil, ErrNilMatrix},
-		{"ErrNilMatrix b", &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, nil, nil, ErrNilMatrix},
-		{"ErrBadProductDimension", &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, &Matrix{[]float64{0, -1}, 1, 2}, nil, ErrBadProductDimension},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			m := &Matrix{}
-			err := m.MatrixProduct(tc.a, tc.b)
-
-			if tc.expectedError != nil {
-				if err != tc.expectedError {
-					t.Errorf("Expected error is %v, but got %v", tc.expectedError, err)
-				}
-			} else if err != nil {
-				t.Errorf("Expected error is %v, but got %v", nil, err)
-			} else if m == nil {
-				t.Error("Matrix should not be nil")
-			} else {
-				for idx, v := range m.vs {
-					if v != tc.expectedValues[idx] {
-						t.Errorf("Expected value is %f, but got %f", tc.expectedValues[idx], v)
-					}
-				}
-			}
-		})
-	}
-
-	t.Run("Data reflection", func(t *testing.T) {
-		t.Parallel()
-
-		r := rand.New(rand.NewSource(0))
-		v := []float64{r.Float64(), r.Float64()}
-		a, _ := New(1, 2, v)
-		b, _ := New(2, 1, v)
-		err := a.MatrixProduct(a, b)
-		if err != nil {
-			t.Errorf("Expected error is %v, but got %v", nil, err)
-		} else {
-			tmp := v[0]
-			v[0] = r.Float64()
-			if a.vs[0] == v[0] {
-				t.Errorf("Expected value is %f, but got %f", tmp, a.vs[0])
-			}
-		}
-	})
-}
-
-func TestMatrixMultiply(t *testing.T) {
+func TestMultiply(t *testing.T) {
 	testCases := []struct {
 		name           string
 		a, b           *Matrix
@@ -400,7 +312,7 @@ func TestMatrixMultiply(t *testing.T) {
 			} else if m == nil {
 				t.Error("Matrix should not be nil")
 			} else {
-				for idx, v := range m.vs {
+				for idx, v := range m.Values {
 					if v != tc.expectedValues[idx] {
 						t.Errorf("Expected value is %f, but got %f", tc.expectedValues[idx], v)
 					}
@@ -422,21 +334,25 @@ func TestMatrixMultiply(t *testing.T) {
 		} else {
 			tmp := v[0]
 			v[0] = r.Float64()
-			if a.vs[0] == v[0] {
-				t.Errorf("Expected value is %f, but got %f", tmp, a.vs[0])
+			if a.Values[0] == v[0] {
+				t.Errorf("Expected value is %f, but got %f", tmp, a.Values[0])
 			}
 		}
 	})
 }
 
-func TestRaw(t *testing.T) {
+func TestProduct(t *testing.T) {
 	testCases := []struct {
 		name           string
-		matrix         *Matrix
+		a, b           *Matrix
 		expectedValues []float64
+		expectedError  error
 	}{
-		{"Normal [2][2]", &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, []float64{0, 1, 2, 3}},
-		{"Normal [1][3]", &Matrix{[]float64{0, 1, 2}, 1, 3}, []float64{0, 1, 2, 3}},
+		{"Normal short", &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, []float64{10, 13, 28, 40}, nil},
+		{"Normal long", &Matrix{[]float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}, 4, 3}, &Matrix{[]float64{0, -1, -2, -3, -4, -5}, 3, 2}, []float64{-10, -13, -28, -40, -46, -67, -64, -94}, nil},
+		{"ErrNilMatrix a", nil, &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, nil, ErrNilMatrix},
+		{"ErrNilMatrix b", &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, nil, nil, ErrNilMatrix},
+		{"ErrBadProductDimension", &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 2, 3}, &Matrix{[]float64{0, -1}, 1, 2}, nil, ErrBadProductDimension},
 	}
 
 	for _, tc := range testCases {
@@ -444,13 +360,45 @@ func TestRaw(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			for idx, v := range tc.matrix.Raw() {
-				if v != tc.expectedValues[idx] {
-					t.Errorf("Expected value is %f, but got %f", tc.expectedValues[idx], v)
+			m := &Matrix{}
+			err := m.Product(tc.a, tc.b)
+
+			if tc.expectedError != nil {
+				if err != tc.expectedError {
+					t.Errorf("Expected error is %v, but got %v", tc.expectedError, err)
+				}
+			} else if err != nil {
+				t.Errorf("Expected error is %v, but got %v", nil, err)
+			} else if m == nil {
+				t.Error("Matrix should not be nil")
+			} else {
+				for idx, v := range m.Values {
+					if v != tc.expectedValues[idx] {
+						t.Errorf("Expected value is %f, but got %f", tc.expectedValues[idx], v)
+					}
 				}
 			}
 		})
 	}
+
+	t.Run("Data reflection", func(t *testing.T) {
+		t.Parallel()
+
+		r := rand.New(rand.NewSource(0))
+		v := []float64{r.Float64(), r.Float64()}
+		a, _ := New(1, 2, v)
+		b, _ := New(2, 1, v)
+		err := a.Product(a, b)
+		if err != nil {
+			t.Errorf("Expected error is %v, but got %v", nil, err)
+		} else {
+			tmp := v[0]
+			v[0] = r.Float64()
+			if a.Values[0] == v[0] {
+				t.Errorf("Expected value is %f, but got %f", tmp, a.Values[0])
+			}
+		}
+	})
 }
 
 func TestScale(t *testing.T) {
@@ -482,7 +430,7 @@ func TestScale(t *testing.T) {
 			} else if m == nil {
 				t.Error("Matrix should not be nil")
 			} else {
-				for idx, v := range m.vs {
+				for idx, v := range m.Values {
 					if v != tc.expectedValues[idx] {
 						t.Errorf("Expected value is %f, but got %f", tc.expectedValues[idx], v)
 					}
@@ -504,8 +452,8 @@ func TestScale(t *testing.T) {
 		} else {
 			tmp := v[0] * scaler
 			v[0] = r.Float64()
-			if a.vs[0] == v[0] {
-				t.Errorf("Expected value is %f, but got %f", tmp, a.vs[0])
+			if a.Values[0] == v[0] {
+				t.Errorf("Expected value is %f, but got %f", tmp, a.Values[0])
 			}
 		}
 	})
@@ -541,7 +489,7 @@ func TestSubtract(t *testing.T) {
 			} else if m == nil {
 				t.Error("Matrix should not be nil")
 			} else {
-				for idx, v := range m.vs {
+				for idx, v := range m.Values {
 					if v != tc.expectedValues[idx] {
 						t.Errorf("Expected value is %f, but got %f", tc.expectedValues[idx], v)
 					}
@@ -561,9 +509,9 @@ func TestSubtract(t *testing.T) {
 		if err != nil {
 			t.Errorf("Expected error is %v, but got %v", nil, err)
 		} else {
-			a.vs[0] = r.Float64()
-			if b.vs[0] != 0.0 {
-				t.Errorf("Expected value is %f, but got %f", 0.0, b.vs[0])
+			a.Values[0] = r.Float64()
+			if b.Values[0] != 0.0 {
+				t.Errorf("Expected value is %f, but got %f", 0.0, b.Values[0])
 			}
 		}
 	})
@@ -577,7 +525,7 @@ func TestTranspose(t *testing.T) {
 		expectedValues             []float64
 		expectedError              error
 	}{
-		{"Normal", &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, 2, 3, []float64{0, 2, 4, 1, 3, 5}, nil},
+		{"Normal", &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, 3, 2, []float64{0, 2, 4, 1, 3, 5}, nil},
 		{"ErrNilMatrix", nil, 0, 0, nil, ErrNilMatrix},
 	}
 
@@ -598,43 +546,18 @@ func TestTranspose(t *testing.T) {
 			} else if m == nil {
 				t.Error("Matrix should not be nil")
 			} else {
-				for idx, v := range m.vs {
+				for idx, v := range m.Values {
 					if v != tc.expectedValues[idx] {
 						t.Errorf("Expected value is %f, but got %f", tc.expectedValues[idx], v)
 					}
 				}
 
-				if m.r != tc.expectedRows {
-					t.Errorf("Expected number of rows is %d, but got %d", tc.expectedRows, m.r)
+				if m.Rows != tc.expectedRows {
+					t.Errorf("Expected number of rows is %d, but got %d", tc.expectedRows, m.Rows)
 				}
 
-				if m.c != tc.expectedCols {
-					t.Errorf("Expected number of columns is %d, but got %d", tc.expectedCols, m.c)
-				}
-			}
-		})
-	}
-}
-
-func TestValues(t *testing.T) {
-	testCases := []struct {
-		name           string
-		matrix         *Matrix
-		expectedValues [][]float64
-	}{
-		{"Normal [2][2]", &Matrix{[]float64{0, 1, 2, 3}, 2, 2}, [][]float64{{0, 1}, {2, 3}}},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			for rIdx, r := range tc.matrix.Values() {
-				for cIdx, c := range r {
-					if c != tc.expectedValues[rIdx][cIdx] {
-						t.Errorf("Expected value is %f, but got %f", tc.expectedValues[rIdx][cIdx], c)
-					}
+				if m.Columns != tc.expectedCols {
+					t.Errorf("Expected number of columns is %d, but got %d", tc.expectedCols, m.Columns)
 				}
 			}
 		})

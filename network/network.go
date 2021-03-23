@@ -83,7 +83,7 @@ func (n *Network) calculateLayerValues(i []float64) ([]*matrix.Matrix, error) {
 	for idx := range lVals[1:] {
 		v := &matrix.Matrix{}
 
-		v.MatrixProduct(n.layers[idx].weights, lVals[idx])
+		v.Product(n.layers[idx].weights, lVals[idx])
 		v.Add(n.layers[idx].biases, v)
 		v.Apply(n.layers[idx].activationFunction.aFn(v), v)
 
@@ -104,7 +104,7 @@ func (n *Network) Predict(i []float64) ([]float64, error) {
 		return nil, err
 	}
 
-	return lVals[len(lVals)-1].Raw(), nil
+	return lVals[len(lVals)-1].Values, nil
 }
 
 // Train ...
@@ -139,7 +139,7 @@ func (n *Network) Train(i, t []float64) error {
 				return err
 			}
 
-			if err := e.MatrixProduct(e, lastErrVal); !errors.Is(err, nil) {
+			if err := e.Product(e, lastErrVal); !errors.Is(err, nil) {
 				return err
 			}
 		}
@@ -159,7 +159,7 @@ func (n *Network) Train(i, t []float64) error {
 			return err
 		}
 
-		if err := d.MatrixProduct(g, d); !errors.Is(err, nil) {
+		if err := d.Product(g, d); !errors.Is(err, nil) {
 			return err
 		}
 

@@ -8,25 +8,25 @@ import (
 
 func ExampleNew() {
 	// Create a 2 x 3 matrix.
-	m, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	mat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	fmt.Println(m.Raw())
+	fmt.Println(mat.Values)
 	// Output:
 	// [0 1 2 3 4 5]
 }
 
 func ExampleCopy() {
 	// Create a 2 x 3 matrix.
-	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
 	// Copy the "a" matrix.
-	b, _ := matrix.Copy(a)
+	bMat, _ := matrix.Copy(aMat)
 
 	// Change the values of the "a" matrix.
-	a.Scale(2, a)
+	aMat.Scale(2, aMat)
 
-	fmt.Println(a.Raw())
-	fmt.Println(b.Raw())
+	fmt.Println(aMat.Values)
+	fmt.Println(bMat.Values)
 	// Output:
 	// [0 2 4 6 8 10]
 	// [0 1 2 3 4 5]
@@ -34,35 +34,35 @@ func ExampleCopy() {
 
 func ExampleNew_zeros() {
 	// Create a 2 x 3 zero matrix.
-	m, _ := matrix.New(2, 3, nil)
+	mat, _ := matrix.New(2, 3, nil)
 
-	fmt.Println(m.Raw())
+	fmt.Println(mat.Values)
 	// Output:
 	// [0 0 0 0 0 0]
 }
 
 func Example_add() {
-	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
-	b, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	bMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	a.Add(a, b)
-	fmt.Println(a.Raw())
+	aMat.Add(aMat, bMat)
+	fmt.Println(aMat.Values)
 	// Output:
 	// [0 2 4 6 8 10]
 }
 
 func Example_apply() {
-	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	a.Apply(func(v float64, r, c int, s []float64) float64 {
+	aMat.Apply(func(v float64, r, c int, s []float64) float64 {
 		fmt.Printf("Slice: %v;\n", s)
 		fmt.Printf("Row: %d; Column: %d; Value: %f;\n", r, c, v)
 		newValue := v + 2
 		fmt.Printf("Row: %d; Column: %d; New value: %f;\n", r, c, newValue)
 		return newValue
-	}, a)
+	}, aMat)
 
-	fmt.Println(a.Raw())
+	fmt.Println(aMat.Values)
 	// Output:
 	// Slice: [0 1 2 3 4 5];
 	// Row: 0; Column: 0; Value: 0.000000;
@@ -86,85 +86,68 @@ func Example_apply() {
 }
 
 func Example_at() {
-	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	v, _ := a.At(1, 2)
-	fmt.Println(v)
+	val, _ := aMat.At(1, 2)
+	fmt.Println(val)
 	// Output:
 	// 5
 }
 
-func Example_dimensions() {
-	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+func Example_multiply() {
+	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	bMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	r, c := a.Dimensions()
-	fmt.Println(r, c)
+	aMat.Multiply(aMat, bMat)
+	fmt.Println(aMat.Values)
 	// Output:
-	// 2 3
+	// [0 1 4 9 16 25]
 }
 
-func Example_matrixProduct() {
-	a, _ := matrix.New(4, 3, []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})
-	b, _ := matrix.New(3, 1, []float64{0, -1, 2})
+func Example_product() {
+	aMat, _ := matrix.New(4, 3, []float64{0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11})
+	bMat, _ := matrix.New(3, 1, []float64{0, -1, 2})
 
-	a.MatrixProduct(a, b)
-	fmt.Println(a.Raw())
-	fmt.Println(a.Dimensions())
+	aMat.Product(aMat, bMat)
+	fmt.Println(aMat.Values)
+	fmt.Println(aMat.Rows, aMat.Columns)
 	// Output:
 	// [3 6 9 12]
 	// 4 1
 }
 
-func Example_multiply() {
-	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
-	b, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
-
-	a.Multiply(a, b)
-	fmt.Println(a.Raw())
-	// Output:
-	// [0 1 4 9 16 25]
-}
-
 func Example_raw() {
-	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	fmt.Println(a.Raw())
+	fmt.Println(aMat.Values)
 	// Output:
 	// [0 1 2 3 4 5]
 }
 
 func Example_scale() {
-	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	a.Scale(2, a)
-	fmt.Println(a.Raw())
+	aMat.Scale(2, aMat)
+	fmt.Println(aMat.Values)
 	// Output:
 	// [0 2 4 6 8 10]
 }
 
 func Example_subtract() {
-	a, _ := matrix.New(2, 3, []float64{2, 4, 8, 16, 32, 64})
-	b, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	aMat, _ := matrix.New(2, 3, []float64{2, 4, 8, 16, 32, 64})
+	bMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	a.Subtract(a, b)
-	fmt.Println(a.Raw())
+	aMat.Subtract(aMat, bMat)
+	fmt.Println(aMat.Values)
 	// Output:
 	// [2 3 6 13 28 59]
 }
 
 func Example_transpose() {
-	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	a.Transpose(a)
-	fmt.Println(a.Raw())
+	aMat.Transpose(aMat)
+	fmt.Println(aMat.Values)
 	// Output:
 	// [0 3 1 4 2 5]
-}
-
-func Example_values() {
-	a, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
-
-	fmt.Println(a.Values())
-	// Output:
-	// [[0 1 2] [3 4 5]]
 }
