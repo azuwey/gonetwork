@@ -52,17 +52,17 @@ func Example_add() {
 }
 
 func Example_apply() {
-	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	mat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	aMat.Apply(func(v float64, r, c int, s []float64) float64 {
+	mat.Apply(func(v float64, r, c int, s []float64) float64 {
 		fmt.Printf("Slice: %v;\n", s)
 		fmt.Printf("Row: %d; Column: %d; Value: %f;\n", r, c, v)
 		newValue := v + 2
 		fmt.Printf("Row: %d; Column: %d; New value: %f;\n", r, c, newValue)
 		return newValue
-	}, aMat)
+	}, mat)
 
-	fmt.Println(aMat.Values)
+	fmt.Println(mat.Values)
 	// Output:
 	// Slice: [0 1 2 3 4 5];
 	// Row: 0; Column: 0; Value: 0.000000;
@@ -86,9 +86,9 @@ func Example_apply() {
 }
 
 func Example_at() {
-	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	mat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	val, _ := aMat.At(1, 2)
+	val, _ := mat.At(1, 2)
 	fmt.Println(val)
 	// Output:
 	// 5
@@ -117,18 +117,18 @@ func Example_product() {
 }
 
 func Example_raw() {
-	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	mat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	fmt.Println(aMat.Values)
+	fmt.Println(mat.Values)
 	// Output:
 	// [0 1 2 3 4 5]
 }
 
 func Example_scale() {
-	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	mat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	aMat.Scale(2, aMat)
-	fmt.Println(aMat.Values)
+	mat.Scale(2, mat)
+	fmt.Println(mat.Values)
 	// Output:
 	// [0 2 4 6 8 10]
 }
@@ -144,10 +144,31 @@ func Example_subtract() {
 }
 
 func Example_transpose() {
-	aMat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+	mat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	aMat.Transpose(aMat)
-	fmt.Println(aMat.Values)
+	mat.Transpose(mat)
+	fmt.Println(mat.Values)
 	// Output:
 	// [0 3 1 4 2 5]
+}
+
+func Example_export() {
+	mat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
+
+	json, _ := mat.Export()
+	fmt.Println(string(json))
+	// Output:
+	// {"values":[0,1,2,3,4,5],"rows":2,"Columns":3}
+}
+
+func Example_import() {
+	mJSON := []byte(`{"values":[0,1,2,3,4,5],"rows":2,"Columns":3}`)
+	mat := &matrix.Matrix{}
+
+	mat.Import(mJSON)
+	fmt.Println(mat.Values)
+	fmt.Println(mat.Rows, mat.Columns)
+	// Output:
+	// [0 1 2 3 4 5]
+	// 2 3
 }

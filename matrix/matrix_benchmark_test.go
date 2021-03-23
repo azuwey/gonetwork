@@ -6,164 +6,198 @@ import (
 )
 
 func BenchmarkNew(b *testing.B) {
-	mVals := make([]float64, b.N)
+	r := rand.New(rand.NewSource(0))
+	vals := make([]float64, b.N)
+	for i := 0; i < b.N; i++ {
+		vals[i] = r.Float64()
+	}
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		New(b.N, 1, mVals)
+		New(b.N, 1, vals)
+	}
+}
+
+func BenchmarkNew_zeros(b *testing.B) {
+	vals := make([]float64, b.N)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		New(b.N, 1, vals)
 	}
 }
 
 func BenchmarkCopy(b *testing.B) {
-	mVals := make([]float64, b.N)
-	a, _ := New(b.N, 1, mVals)
+	vals := make([]float64, b.N)
+	mat, _ := New(b.N, 1, vals)
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		Copy(a)
+		Copy(mat)
 	}
 }
 
 func BenchmarkAdd(b *testing.B) {
-	mVals := make([]float64, b.N)
+	r := rand.New(rand.NewSource(0))
 	aVals := make([]float64, b.N)
-
+	bVals := make([]float64, b.N)
 	for i := 0; i < b.N; i++ {
-		mVals[i] = rand.Float64()
-		aVals[i] = rand.Float64()
+		aVals[i] = r.Float64()
+		bVals[i] = r.Float64()
 	}
 
-	m := &Matrix{mVals, b.N, 1}
-	a := &Matrix{aVals, b.N, 1}
+	aMat := &Matrix{aVals, b.N, 1}
+	bMat := &Matrix{bVals, b.N, 1}
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		m.Add(m, a)
+		aMat.Add(aMat, bMat)
 	}
 }
 
 func BenchmarkApply(b *testing.B) {
-	mVals := make([]float64, b.N)
-
+	r := rand.New(rand.NewSource(0))
+	vals := make([]float64, b.N)
 	for i := 0; i < b.N; i++ {
-		mVals[i] = rand.Float64()
+		vals[i] = r.Float64()
 	}
 
-	m := &Matrix{mVals, b.N, 1}
+	mat := &Matrix{vals, b.N, 1}
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		m.Apply(func(v float64, _, _ int, _ []float64) float64 {
+		mat.Apply(func(v float64, _, _ int, _ []float64) float64 {
 			return v
-		}, m)
+		}, mat)
 	}
 }
 
 func BenchmarkAt(b *testing.B) {
-	mVals := make([]float64, b.N)
-
+	r := rand.New(rand.NewSource(0))
+	vals := make([]float64, b.N)
 	for i := 0; i < b.N; i++ {
-		mVals[i] = rand.Float64()
+		vals[i] = r.Float64()
 	}
 
-	m := &Matrix{mVals, b.N, 1}
+	mat := &Matrix{vals, b.N, 1}
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		m.At(i, 1)
+		mat.At(i, 1)
 	}
 }
 
 func BenchmarkMultiply(b *testing.B) {
-	mVals := make([]float64, b.N)
+	r := rand.New(rand.NewSource(0))
 	aVals := make([]float64, b.N)
-
+	bVals := make([]float64, b.N)
 	for i := 0; i < b.N; i++ {
-		mVals[i] = rand.Float64()
-		aVals[i] = rand.Float64()
+		aVals[i] = r.Float64()
+		bVals[i] = r.Float64()
 	}
 
-	m := &Matrix{mVals, b.N, 1}
-	a := &Matrix{aVals, b.N, 1}
+	aMat := &Matrix{aVals, b.N, 1}
+	bMat := &Matrix{bVals, b.N, 1}
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		m.Multiply(m, a)
+		aMat.Multiply(aMat, bMat)
 	}
 }
 
 func BenchmarkProduct(b *testing.B) {
-	mVals := make([]float64, b.N)
+	r := rand.New(rand.NewSource(0))
 	aVals := make([]float64, b.N)
-
+	bVals := make([]float64, b.N)
 	for i := 0; i < b.N; i++ {
-		mVals[i] = rand.Float64()
-		aVals[i] = rand.Float64()
+		aVals[i] = r.Float64()
+		bVals[i] = r.Float64()
 	}
 
-	m := &Matrix{mVals, 1, b.N}
-	a := &Matrix{aVals, b.N, 1}
+	aMat := &Matrix{aVals, 1, b.N}
+	bMat := &Matrix{bVals, b.N, 1}
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		m.Product(m, a)
+		aMat.Product(aMat, bMat)
 	}
 }
 
 func BenchmarkScale(b *testing.B) {
-	mVals := make([]float64, b.N)
-
+	r := rand.New(rand.NewSource(0))
+	vals := make([]float64, b.N)
 	for i := 0; i < b.N; i++ {
-		mVals[i] = rand.Float64()
+		vals[i] = r.Float64()
 	}
 
-	m := &Matrix{mVals, b.N, 1}
+	mat := &Matrix{vals, b.N, 1}
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		m.Scale(2, m)
+		mat.Scale(2, mat)
 	}
 }
 
 func BenchmarkSubtract(b *testing.B) {
-	mVals := make([]float64, b.N)
+	r := rand.New(rand.NewSource(0))
 	aVals := make([]float64, b.N)
-
+	bVals := make([]float64, b.N)
 	for i := 0; i < b.N; i++ {
-		mVals[i] = rand.Float64()
-		aVals[i] = rand.Float64()
+		aVals[i] = r.Float64()
+		bVals[i] = r.Float64()
 	}
 
-	m := &Matrix{mVals, b.N, 1}
-	a := &Matrix{aVals, b.N, 1}
+	aMat := &Matrix{aVals, b.N, 1}
+	bMat := &Matrix{bVals, b.N, 1}
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		m.Subtract(m, a)
+		aMat.Subtract(aMat, bMat)
 	}
 }
 
 func BenchmarkTranspose(b *testing.B) {
-	mVals := make([]float64, b.N*2)
-
+	r := rand.New(rand.NewSource(0))
+	vals := make([]float64, b.N*2)
 	for i := 0; i < b.N; i++ {
-		mVals[i] = rand.Float64()
+		vals[i] = r.Float64()
 	}
 
-	m := &Matrix{mVals, b.N, 2}
+	mat := &Matrix{vals, b.N, 2}
 
 	b.ResetTimer()
-
 	for i := 0; i < b.N; i++ {
-		m.Transpose(m)
+		mat.Transpose(mat)
+	}
+}
+
+func BenchmarkExport(b *testing.B) {
+	r := rand.New(rand.NewSource(0))
+	vals := make([]float64, b.N)
+	for i := 0; i < b.N; i++ {
+		vals[i] = r.Float64()
+	}
+
+	mat, _ := New(b.N, 1, vals)
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		mat.Export()
+	}
+}
+
+func BenchmarkImport(b *testing.B) {
+	r := rand.New(rand.NewSource(0))
+	vals := make([]float64, b.N)
+	for i := 0; i < b.N; i++ {
+		vals[i] = r.Float64()
+	}
+
+	mat, _ := New(b.N, 1, vals)
+	mJSON, _ := mat.Export()
+
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		mat.Import(mJSON)
 	}
 }

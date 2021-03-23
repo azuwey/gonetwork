@@ -1,5 +1,7 @@
 package matrix
 
+import "encoding/json"
+
 // Matrix represents a mathematical matrix.
 type Matrix struct {
 	Values  []float64 `json:"values"`  // Values of the matrix
@@ -250,4 +252,14 @@ func (m *Matrix) Transpose(aMat *Matrix) error {
 	}
 
 	return nil
+}
+
+// Export return a JSON representation of the matrix as a byte slice.
+func (m *Matrix) Export() ([]byte, error) {
+	return json.Marshal(m)
+}
+
+// Import is parses "b" JSON byte slice and placing the result it in the receiver.
+func (m *Matrix) Import(b []byte) error {
+	return json.Unmarshal(b, m)
 }
