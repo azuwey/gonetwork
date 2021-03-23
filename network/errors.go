@@ -16,3 +16,9 @@ var ErrLearningRateRange = errors.New("Network: learning rate range must be grea
 
 // ErrNilRand is returned by New when `r` is nil.
 var ErrNilRand = errors.New("Network: random source must not be nil")
+
+// ErrNilMatrix is returned by Train when `t` is nil.
+var ErrNilTargetSlice = errors.New("Network: traget slice must not be nil")
+
+// ErrNilMatrix is returned by any operation that is require a input slice as argument.
+var ErrNilInputSlice = errors.New("Network: input slice must not be nil")

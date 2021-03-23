@@ -49,12 +49,12 @@ func New(ls []Layer, lr float64, r *rand.Rand) (*Network, error) {
 		return r.Float64()*2 - 1
 	}
 
-	for i, n := range ls[1:] {
+	for idx, n := range ls[1:] {
 		if n.ActivationFunction == nil {
 			return nil, ErrNilActivationFn
 		}
 
-		w, err := matrix.New(n.Nodes, ls[i].Nodes, make([]float64, n.Nodes*ls[i].Nodes))
+		w, err := matrix.New(n.Nodes, ls[idx].Nodes, make([]float64, n.Nodes*ls[idx].Nodes))
 		if !errors.Is(err, nil) {
 			return nil, err
 		}
@@ -63,7 +63,7 @@ func New(ls []Layer, lr float64, r *rand.Rand) (*Network, error) {
 
 		w.Apply(rnd, w)
 		b.Apply(rnd, b)
-		ly[i] = &layer{w, b, n.ActivationFunction}
+		ly[idx] = &layer{w, b, n.ActivationFunction}
 	}
 
 	n := &Network{lr, ly, r}
@@ -82,17 +82,10 @@ func (n *Network) calculateLayerValues(i []float64) ([]*matrix.Matrix, error) {
 
 	for idx := range lVals[1:] {
 		v := &matrix.Matrix{}
-		if err := v.MatrixProduct(n.layers[idx].weights, lVals[idx]); !errors.Is(err, nil) {
-			return nil, err
-		}
 
-		if err := v.Add(n.layers[idx].biases, v); !errors.Is(err, nil) {
-			return nil, err
-		}
-
-		if err := v.Apply(n.layers[idx].activationFunction.aFn(v), v); !errors.Is(err, nil) {
-			return nil, err
-		}
+		v.MatrixProduct(n.layers[idx].weights, lVals[idx])
+		v.Add(n.layers[idx].biases, v)
+		v.Apply(n.layers[idx].activationFunction.aFn(v), v)
 
 		lVals[idx+1] = v
 	}
@@ -103,7 +96,7 @@ func (n *Network) calculateLayerValues(i []float64) ([]*matrix.Matrix, error) {
 // Predict ...
 func (n *Network) Predict(i []float64) ([]float64, error) {
 	if i == nil {
-		return nil, nil // TODO: Error
+		return nil, ErrNilInputSlice
 	}
 
 	lVals, err := n.calculateLayerValues(i)
@@ -117,11 +110,11 @@ func (n *Network) Predict(i []float64) ([]float64, error) {
 // Train ...
 func (n *Network) Train(i, t []float64) error {
 	if i == nil {
-		return nil // TODO: Error
+		return ErrNilInputSlice
 	}
 
 	if t == nil {
-		return nil // TODO: Error
+		return ErrNilTargetSlice
 	}
 
 	tMat, err := matrix.New(len(t), 1, t)

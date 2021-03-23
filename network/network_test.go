@@ -1,8 +1,6 @@
 package network
 
 import (
-	"errors"
-	"fmt"
 	"math"
 	"math/rand"
 	"testing"
@@ -12,36 +10,155 @@ import (
 
 const float64EqualityThreshold = 0.02
 
+func isFloatInThreshold(v float64, t float64) bool {
+	if math.Abs(v-t) <= float64EqualityThreshold {
+		return true
+	} else {
+		return false
+	}
+}
+
+var dummyActivationFunction *ActivationFunction = &ActivationFunction{
+	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
+			return v
+		}
+	},
+	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+		return func(v float64, _, _ int, _ []float64) float64 {
+			return 1
+		}
+	},
+}
+
 func TestNew(t *testing.T) {
+	rnd := rand.New(rand.NewSource(0))
 	testCases := []struct {
-		layers        []Layer
+		name          string
 		learningRate  float64
-		rnd           *rand.Rand
+		rand          *rand.Rand
+		layers        []Layer
 		expectedError error
 	}{
-		{[]Layer{{2, nil}, {2, LogisticSigmoid}, {2, LogisticSigmoid}}, 0.1, rand.New(rand.NewSource(0)), nil},
-		{[]Layer{{2, nil}, {2, TanH}, {2, TanH}}, 0.1, rand.New(rand.NewSource(0)), nil},
-		{[]Layer{{2, nil}, {2, ReLU}, {2, ReLU}}, 0.1, rand.New(rand.NewSource(0)), nil},
-		{[]Layer{{2, nil}, {2, LeakyReLU}, {2, LeakyReLU}}, 0.1, rand.New(rand.NewSource(0)), nil},
-		{[]Layer{{2, nil}, {2, LogisticSigmoid}}, 0.1, rand.New(rand.NewSource(0)), ErrLayerStructureLength},
-		{[]Layer{{2, nil}, {2, LogisticSigmoid}, {2, LogisticSigmoid}}, 0, rand.New(rand.NewSource(0)), ErrLearningRateRange},
-		{[]Layer{{2, nil}, {2, LogisticSigmoid}, {2, LogisticSigmoid}}, 1.01, rand.New(rand.NewSource(0)), ErrLearningRateRange},
-		{[]Layer{{2, nil}, {2, LogisticSigmoid}, {2, LogisticSigmoid}}, 0.1, nil, ErrNilRand},
-		{[]Layer{{2, nil}, {2, nil}, {2, LogisticSigmoid}}, 0.1, rand.New(rand.NewSource(0)), ErrNilActivationFn},
-		{[]Layer{{2, nil}, {0, LogisticSigmoid}, {2, LogisticSigmoid}}, 0.1, rand.New(rand.NewSource(0)), matrix.ErrZeroRow},
-		{[]Layer{{0, nil}, {1, LogisticSigmoid}, {2, LogisticSigmoid}}, 0.1, rand.New(rand.NewSource(0)), matrix.ErrZeroCol},
+		{"Normal", 0.1, rand.New(rand.NewSource(0)), []Layer{{rnd.Intn(32) + 1, nil}, {rnd.Intn(32) + 1, dummyActivationFunction}, {rnd.Intn(32) + 1, dummyActivationFunction}}, nil},
+		{"ErrLayerStructureLength", 0.1, rand.New(rand.NewSource(0)), []Layer{{rnd.Intn(32) + 1, nil}, {rnd.Intn(32) + 1, nil}}, ErrLayerStructureLength},
+		{"ErrLearningRateRange < 0", -0, rand.New(rand.NewSource(0)), []Layer{{rnd.Intn(32) + 1, nil}, {rnd.Intn(32) + 1, nil}, {rnd.Intn(32) + 1, nil}}, ErrLearningRateRange},
+		{"ErrLearningRateRange > 1", 1.1, rand.New(rand.NewSource(0)), []Layer{{rnd.Intn(32) + 1, nil}, {rnd.Intn(32) + 1, nil}, {rnd.Intn(32) + 1, nil}}, ErrLearningRateRange},
+		{"ErrNilRand", 0.1, nil, []Layer{{1, nil}, {1, nil}, {1, nil}}, ErrNilRand},
+		{"ErrNilActivationFn", 0.1, rand.New(rand.NewSource(0)), []Layer{{rnd.Intn(32) + 1, nil}, {rnd.Intn(32) + 1, nil}, {rnd.Intn(32) + 1, dummyActivationFunction}}, ErrNilActivationFn},
+		{"matrix.ErrZeroRow", 0.1, rand.New(rand.NewSource(0)), []Layer{{rnd.Intn(32) + 1, nil}, {0, dummyActivationFunction}, {rnd.Intn(32) + 1, dummyActivationFunction}}, matrix.ErrZeroRow},
+		{"matrix.ErrZeroCol", 0.1, rand.New(rand.NewSource(0)), []Layer{{0, nil}, {rnd.Intn(32) + 1, dummyActivationFunction}, {rnd.Intn(32) + 1, dummyActivationFunction}}, matrix.ErrZeroCol},
 	}
 
-	for tcIndex, tcValue := range testCases {
-		tcValue, tcIndex := tcValue, tcIndex // capture range variables
-		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			_, err := New(tcValue.layers, tcValue.learningRate, tcValue.rnd)
-			if tcValue.expectedError != nil {
-				if !errors.Is(err, tcValue.expectedError) {
-					t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
-					t.Fail()
+			n, err := New(tc.layers, tc.learningRate, tc.rand)
+			if tc.expectedError != nil {
+				if err != tc.expectedError {
+					t.Errorf("Expected error is %v, but got %v", tc.expectedError, err)
+				}
+			} else if err != nil {
+				t.Errorf("Expected error is %v, but got %v", nil, err)
+			} else if n == nil {
+				t.Error("Matrix should not be nil")
+			} else {
+				if len(n.layers) != len(tc.layers)-1 {
+					t.Errorf("Expected length of layers is %d, but got %d", len(tc.layers)-1, len(n.layers))
+				}
+
+				for idx, l := range n.layers {
+					if l.activationFunction != tc.layers[idx+1].ActivationFunction {
+						t.Errorf("Expected activation function is %v, but got %v", tc.layers[idx+1].ActivationFunction, l.activationFunction)
+					}
+
+					if l.weights == nil {
+						t.Error("Weights should not be nil")
+					}
+
+					wRows, wCols := l.weights.Dimensions()
+					if wRows != tc.layers[idx+1].Nodes {
+						t.Errorf("Expected rows of weights is %d, but got %d", tc.layers[idx+1].Nodes, wRows)
+					}
+
+					if wCols != tc.layers[idx].Nodes {
+						t.Errorf("Expected columns of weights is %d, but got %d", tc.layers[idx].Nodes, wCols)
+					}
+
+					if l.biases == nil {
+						t.Error("Biases should not be nil")
+					}
+
+					bRows, bCols := l.biases.Dimensions()
+					if bRows != tc.layers[idx+1].Nodes {
+						t.Errorf("Expected rows of weights is %d, but got %d", tc.layers[idx+1].Nodes, bRows)
+					}
+
+					if bCols != 1 {
+						t.Errorf("Expected columns of weights is %d, but got %d", 1, bCols)
+					}
+				}
+
+				if n.learningRate != tc.learningRate {
+					t.Errorf("Expected learning rate is %f, but got %f", tc.learningRate, n.learningRate)
+				}
+
+				if n.rand != tc.rand {
+					t.Errorf("Expected randomizer is %v, but got %v", tc.rand, n.rand)
+				}
+			}
+		})
+	}
+}
+
+func Test_calculateLayerValues(t *testing.T) {
+	testCases := []struct {
+		name           string
+		inputs         []float64
+		expectedValues [][]float64
+		expectedError  error
+	}{
+		{"Normal", []float64{0.5}, [][]float64{{0.500000}, {-0.064874}, {-0.911547}}, nil},
+		{"matrix.ErrZeroRow", []float64{}, [][]float64{}, matrix.ErrZeroRow},
+		{"matrix.ErrZeroRow", nil, [][]float64{}, matrix.ErrZeroRow},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			n, _ := New([]Layer{
+				{len(tc.inputs), nil},
+				{len(tc.inputs), dummyActivationFunction},
+				{len(tc.inputs), dummyActivationFunction},
+			}, 0.1, rand.New(rand.NewSource(0)))
+
+			vals, err := n.calculateLayerValues(tc.inputs)
+			if tc.expectedError != nil {
+				if err != tc.expectedError {
+					t.Errorf("Expected error is %v, but got %v", tc.expectedError, err)
+				}
+			} else if err != nil {
+				t.Errorf("Expected error is %v, but got %v", nil, err)
+			} else if n == nil {
+				t.Error("Matrix should not be nil")
+			} else {
+				if len(vals) != len(tc.expectedValues) {
+					t.Errorf("Expected length of layer values is %d, but got %d", len(tc.expectedValues), len(vals))
+				}
+
+				for lvIdx, lv := range vals {
+					if len(lv.Raw()) != len(tc.expectedValues[lvIdx]) {
+						t.Errorf("Expected length of values is %d, but got %d", len(tc.expectedValues[lvIdx]), len(lv.Raw()))
+					}
+					for vIdx, v := range lv.Raw() {
+						if !isFloatInThreshold(v, tc.expectedValues[lvIdx][vIdx]) {
+							t.Errorf("Expected value of the layer is %f, but got %f", tc.expectedValues[lvIdx][vIdx], v)
+						}
+					}
 				}
 			}
 		})
@@ -50,143 +167,44 @@ func TestNew(t *testing.T) {
 
 func TestPredict(t *testing.T) {
 	testCases := []struct {
-		inputs, targets []float64
-		layers          []Layer
-		expectedError   error
+		name           string
+		inputs         []float64
+		expectedValues []float64
+		expectedError  error
 	}{
-		{[]float64{0, 0}, []float64{0.657095}, []Layer{{2, nil}, {2, LogisticSigmoid}, {1, LogisticSigmoid}}, nil},
-		{[]float64{0, 0}, []float64{0.680450}, []Layer{{2, nil}, {2, TanH}, {1, TanH}}, nil},
-		{[]float64{0, 0}, []float64{0.794339}, []Layer{{2, nil}, {2, ReLU}, {1, ReLU}}, nil},
-		{[]float64{0, 0}, []float64{0.800759}, []Layer{{2, nil}, {2, LeakyReLU}, {1, LeakyReLU}}, nil},
-		{[]float64{0, 0}, []float64{0.189501, 0.810499}, []Layer{{2, nil}, {2, LogisticSigmoid}, {2, Softmax}}, nil},
-		{[]float64{0, 0}, []float64{0.222440, 0.777560}, []Layer{{2, nil}, {2, TanH}, {2, Softmax}}, nil},
-		{[]float64{0, 0}, []float64{0.226525, 0.773475}, []Layer{{2, nil}, {2, ReLU}, {2, Softmax}}, nil},
-		{[]float64{0, 0}, []float64{0.225208, 0.774792}, []Layer{{2, nil}, {2, LeakyReLU}, {2, Softmax}}, nil},
+		{"Normal", []float64{0.5}, []float64{-0.911547}, nil},
+		{"ErrNilInputSlice", nil, []float64{}, ErrNilInputSlice},
+		{"matrix.ErrZeroRow", []float64{}, []float64{}, matrix.ErrZeroRow},
 	}
 
-	for tcIndex, tcValue := range testCases {
-		tcValue, tcIndex := tcValue, tcIndex // capture range variables
-		t.Run(fmt.Sprintf("[%d] %+v", tcIndex, tcValue), func(t *testing.T) {
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			r := rand.New(rand.NewSource(0))
-			n, _ := New(tcValue.layers, 0.1, r)
-			prediction, err := n.Predict(tcValue.inputs)
+			n, _ := New([]Layer{
+				{len(tc.inputs), nil},
+				{len(tc.inputs), dummyActivationFunction},
+				{len(tc.inputs), dummyActivationFunction},
+			}, 0.1, rand.New(rand.NewSource(0)))
 
-			if tcValue.expectedError != nil {
-				if !errors.Is(err, tcValue.expectedError) {
-					t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
-					t.Fail()
+			vals, err := n.Predict(tc.inputs)
+			if tc.expectedError != nil {
+				if err != tc.expectedError {
+					t.Errorf("Expected error is %v, but got %v", tc.expectedError, err)
 				}
-				return
-			}
-
-			if tcValue.targets != nil {
-				if len(prediction) != len(tcValue.targets) {
-					t.Logf("Lenght of the prediction should be %d but it's %d", len(tcValue.targets), len(prediction))
-					t.Fail()
+			} else if err != nil {
+				t.Errorf("Expected error is %v, but got %v", nil, err)
+			} else if n == nil {
+				t.Error("Matrix should not be nil")
+			} else {
+				if len(vals) != len(tc.expectedValues) {
+					t.Errorf("Expected length of layer values is %d, but got %d", len(tc.expectedValues), len(vals))
 				}
 
-				for idx, v := range prediction {
-					if math.Abs(v-tcValue.targets[idx]) > float64EqualityThreshold {
-						t.Logf("Value of the prediction should be %f but it's %f", tcValue.targets[idx], v)
-						t.Fail()
-					}
-				}
-			} else if prediction != nil {
-				t.Logf("Prediction should be nil, but it's %+v", prediction)
-				t.Fail()
-			}
-		})
-	}
-}
-
-func TestTrain(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test in short mode.")
-	}
-
-	type dataSet struct{ inputs, targets []float64 }
-	testCases := []struct {
-		name                   string
-		learningRate           float64
-		epoch                  int
-		expectedError          error
-		layerStructure         []Layer
-		learningData, testData []dataSet
-	}{
-		{
-			"XOR", 0.1, 30000, nil, []Layer{
-				{2, nil}, {2, TanH}, {1, LogisticSigmoid},
-			}, []dataSet{
-				{[]float64{0, 0}, []float64{0}},
-				{[]float64{0, 1}, []float64{1}},
-				{[]float64{1, 0}, []float64{1}},
-				{[]float64{1, 1}, []float64{0}},
-			}, []dataSet{
-				{[]float64{0, 0}, []float64{0}},
-				{[]float64{0, 1}, []float64{1}},
-				{[]float64{1, 0}, []float64{1}},
-				{[]float64{1, 1}, []float64{0}},
-			},
-		},
-		{
-			"4-bit counter", 0.1, 30000, nil, []Layer{
-				{4, nil}, {16, TanH}, {4, LogisticSigmoid},
-			}, []dataSet{
-				{[]float64{0, 0, 0, 0}, []float64{0, 0, 0, 1}},
-				{[]float64{0, 0, 0, 1}, []float64{0, 0, 1, 0}},
-				{[]float64{0, 0, 1, 0}, []float64{0, 0, 1, 1}},
-				{[]float64{0, 0, 1, 1}, []float64{0, 1, 0, 0}},
-				{[]float64{0, 1, 0, 0}, []float64{0, 1, 0, 1}},
-				{[]float64{0, 1, 0, 1}, []float64{0, 1, 1, 0}},
-				{[]float64{0, 1, 1, 0}, []float64{0, 1, 1, 1}},
-				{[]float64{0, 1, 1, 1}, []float64{1, 0, 0, 0}},
-				{[]float64{1, 0, 0, 0}, []float64{1, 0, 0, 1}},
-				{[]float64{1, 0, 0, 1}, []float64{1, 0, 1, 0}},
-				{[]float64{1, 0, 1, 0}, []float64{1, 0, 1, 1}},
-				{[]float64{1, 0, 1, 1}, []float64{1, 1, 0, 0}},
-				{[]float64{1, 1, 0, 0}, []float64{1, 1, 0, 1}},
-				{[]float64{1, 1, 1, 0}, []float64{1, 1, 1, 1}},
-			}, []dataSet{
-				{[]float64{1, 1, 0, 1}, []float64{1, 1, 1, 0}},
-			},
-		},
-	}
-
-	for _, tcValue := range testCases {
-		tcValue := tcValue // capture range variables
-		t.Run(tcValue.name, func(t *testing.T) {
-			t.Parallel()
-
-			r := rand.New(rand.NewSource(0))
-			n, _ := New(tcValue.layerStructure, tcValue.learningRate, r)
-
-			for e := 0; e < tcValue.epoch; e++ {
-				r.Shuffle(len(tcValue.learningData), func(i, j int) {
-					tcValue.learningData[i], tcValue.learningData[j] = tcValue.learningData[j], tcValue.learningData[i]
-				})
-
-				for _, ld := range tcValue.learningData {
-					if err := n.Train(ld.inputs, ld.targets); !errors.Is(err, nil) {
-						if tcValue.expectedError == nil {
-							t.Logf("Err should be %v but it's %v", tcValue.expectedError, err)
-							t.FailNow()
-						}
-					}
-				}
-			}
-
-			for _, d := range tcValue.testData {
-				guesses, _ := n.Predict(d.inputs)
-				for idx, v := range guesses {
-					if math.IsNaN(v) {
-						t.Logf("Value should not be NaN for target: %v with input: %v", d.targets, d.inputs)
-						t.Fail()
-					}
-					if math.Abs(v-d.targets[idx]) > float64EqualityThreshold {
-						t.Logf("Value of the prediction should be %f but it's %f, targets: %v, inputs: %v, predictions: %v", d.targets[idx], v, d.targets, d.inputs, guesses)
-						t.Fail()
+				for idx, v := range vals {
+					if !isFloatInThreshold(v, tc.expectedValues[idx]) {
+						t.Errorf("Expected value of the layer is %f, but got %f", tc.expectedValues[idx], v)
 					}
 				}
 			}
