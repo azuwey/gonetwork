@@ -2,8 +2,8 @@ package matrix
 
 // Matrix represents a mathematical matrix.
 type Matrix struct {
-	values        []float64
-	rows, columns int
+	vs   []float64 // Values of the matrix
+	r, c int       // Number of rows and columns
 }
 
 // ApplyFn represents a function that is applied to the matrix when Apply is called
@@ -13,7 +13,7 @@ type ApplyFn func(v float64, r, c int, s []float64) float64
 // If "v == nil", a new slice will be allocated with "r * c" size.
 // If the length of the "v" is "r * c" it will be used as the underlaying slice but the changes won't be reflected, otherwise it will return an error.
 // It will also return an error if "r <= 0" of "c <= 0".
-func New(r, c int, v []float64) (*Matrix, error) {
+func New(r, c int, vs []float64) (*Matrix, error) {
 	if r <= 0 {
 		return nil, ErrZeroRow
 	}
@@ -22,19 +22,19 @@ func New(r, c int, v []float64) (*Matrix, error) {
 		return nil, ErrZeroCol
 	}
 
-	if v == nil {
-		v = make([]float64, r*c)
+	if vs == nil {
+		vs = make([]float64, r*c)
 	} else {
-		tmp := make([]float64, len(v))
-		copy(tmp, v)
-		v = tmp
+		tmp := make([]float64, len(vs))
+		copy(tmp, vs)
+		vs = tmp
 	}
 
-	if len(v) != r*c {
+	if len(vs) != r*c {
 		return nil, ErrDataLength
 	}
 
-	m := &Matrix{v, r, c}
+	m := &Matrix{vs, r, c}
 
 	return m, nil
 }
@@ -46,36 +46,36 @@ func Copy(a *Matrix) (*Matrix, error) {
 		return nil, ErrNilMatrix
 	}
 
-	values := make([]float64, a.rows*a.columns)
-	mCopy := &Matrix{values, a.rows, a.columns}
-	copy(mCopy.values, a.values)
-	return mCopy, nil
+	vs := make([]float64, a.r*a.c)
+	cp := &Matrix{vs, a.r, a.c}
+	copy(cp.vs, a.vs)
+	return cp, nil
 }
 
 // Add adds "a" and "b" element-wise, placing the result in the receiver.
-// It will return an error if the two matrices do not have the same dimensions.
+// It will return an error if the two matrices do not hase the same dimensions.
 // It will also return an error if "a == nil" or "b == nil".
 func (m *Matrix) Add(a, b *Matrix) error {
 	if a == nil || b == nil {
 		return ErrNilMatrix
 	}
 
-	aRows, aCols := a.Dimensions()
-	bRows, bCols := b.Dimensions()
-	if aRows != bRows || aCols != bCols {
+	ar, ac := a.Dimensions()
+	br, bc := b.Dimensions()
+	if ar != br || ac != bc {
 		return ErrDifferentDimensions
 	}
 
-	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
-	copy(aVals, a.values)
-	copy(bVals, b.values)
+	as, bs := make([]float64, ar*ac), make([]float64, br*bc)
+	copy(as, a.vs)
+	copy(bs, b.vs)
 
-	m.rows = aRows
-	m.columns = aCols
-	m.values = make([]float64, m.rows*m.columns)
+	m.r = ar
+	m.c = ac
+	m.vs = make([]float64, m.r*m.c)
 
-	for idx := range m.values {
-		m.values[idx] = aVals[idx] + bVals[idx]
+	for idx := range m.vs {
+		m.vs[idx] = as[idx] + bs[idx]
 	}
 
 	return nil
@@ -93,17 +93,17 @@ func (m *Matrix) Apply(fn ApplyFn, a *Matrix) error {
 		return ErrNilMatrix
 	}
 
-	aRows, aCols := a.Dimensions()
-	aVals := make([]float64, aRows*aCols)
-	copy(aVals, a.values)
+	ar, ac := a.Dimensions()
+	as := make([]float64, ar*ac)
+	copy(as, a.vs)
 
-	m.rows, m.columns = aRows, aCols
-	m.values = make([]float64, m.rows*m.columns)
+	m.r, m.c = ar, ac
+	m.vs = make([]float64, m.r*m.c)
 
-	for idx := range m.values {
-		r := idx / m.columns
-		s := append(m.values[:idx], aVals[idx:]...)
-		m.values[idx] = fn(aVals[idx], r, idx-(r*m.columns), s)
+	for idx := range m.vs {
+		r := idx / m.c
+		s := append(m.vs[:idx], as[idx:]...)
+		m.vs[idx] = fn(as[idx], r, idx-(r*m.c), s)
 	}
 
 	return nil
@@ -113,20 +113,20 @@ func (m *Matrix) Apply(fn ApplyFn, a *Matrix) error {
 // Indexing is zero-based, so the first row will be at "0" and the last row will be at "numberOfRows - 1" same for the columns.
 // It will return an error if "r" bigger than the number of rows or "c" is bigger than the number columns.
 func (m *Matrix) At(r, c int) (float64, error) {
-	if r > m.rows-1 {
+	if r > m.r-1 {
 		return 0, ErrRowOutOfBounds
 	}
 
-	if c > m.columns-1 {
+	if c > m.c-1 {
 		return 0, ErrColOutOfBounds
 	}
 
-	return m.values[r*m.columns+c], nil
+	return m.vs[r*m.c+c], nil
 }
 
 // Dimensions returns the number of rows and columns in the matrix.
 func (m *Matrix) Dimensions() (int, int) {
-	return m.rows, m.columns
+	return m.r, m.c
 }
 
 // MatrixProduct performs matrix multiplication of "a" and "b", placing the result in the receiver.
@@ -137,23 +137,23 @@ func (m *Matrix) MatrixProduct(a, b *Matrix) error {
 		return ErrNilMatrix
 	}
 
-	aRows, aCols := a.Dimensions()
-	bRows, bCols := b.Dimensions()
-	if aCols != bRows {
+	ar, ac := a.Dimensions()
+	br, bc := b.Dimensions()
+	if ac != br {
 		return ErrBadProductDimension
 	}
 
-	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
-	copy(aVals, a.values)
-	copy(bVals, b.values)
+	as, bvs := make([]float64, ar*ac), make([]float64, br*bc)
+	copy(as, a.vs)
+	copy(bvs, b.vs)
 
-	m.rows = aRows
-	m.columns = bCols
-	m.values = make([]float64, m.rows*m.columns)
+	m.r = ar
+	m.c = bc
+	m.vs = make([]float64, m.r*m.c)
 
-	for mIdx := range m.values {
-		for bIdx := 0; bIdx < bRows; bIdx++ {
-			m.values[mIdx] += aVals[((mIdx/bCols)*aCols)+bIdx] * bVals[(bIdx*bCols)+(mIdx%bCols)]
+	for mIdx := range m.vs {
+		for bIdx := 0; bIdx < br; bIdx++ {
+			m.vs[mIdx] += as[((mIdx/bc)*ac)+bIdx] * bvs[(bIdx*bc)+(mIdx%bc)]
 		}
 	}
 
@@ -161,29 +161,29 @@ func (m *Matrix) MatrixProduct(a, b *Matrix) error {
 }
 
 // Multiply performs element-wise multiplication of "a" and "b", placing the result in the receiver.
-// It will return an error if the two matrices does not have the same dimensions.
+// It will return an error if the two matrices does not hase the same dimensions.
 // It will also return an error if "b == nil" or "a == nil".
 func (m *Matrix) Multiply(a, b *Matrix) error {
 	if a == nil || b == nil {
 		return ErrNilMatrix
 	}
 
-	aRows, aCols := a.Dimensions()
-	bRows, bCols := b.Dimensions()
-	if aRows != bRows || aCols != bCols {
+	ar, ac := a.Dimensions()
+	br, bc := b.Dimensions()
+	if ar != br || ac != bc {
 		return ErrDifferentDimensions
 	}
 
-	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
-	copy(aVals, a.values)
-	copy(bVals, b.values)
+	as, bvs := make([]float64, ar*ac), make([]float64, br*bc)
+	copy(as, a.vs)
+	copy(bvs, b.vs)
 
-	m.rows = aRows
-	m.columns = aCols
-	m.values = make([]float64, m.rows*m.columns)
+	m.r = ar
+	m.c = ac
+	m.vs = make([]float64, m.r*m.c)
 
-	for idx := range m.values {
-		m.values[idx] = aVals[idx] * bVals[idx]
+	for idx := range m.vs {
+		m.vs[idx] = as[idx] * bvs[idx]
 	}
 
 	return nil
@@ -192,7 +192,7 @@ func (m *Matrix) Multiply(a, b *Matrix) error {
 // Raw returns the underlying slice.
 // Changes on this slice will be refrected on the matrix.
 func (m *Matrix) Raw() []float64 {
-	return m.values
+	return m.vs
 }
 
 // Scale multiplies the elements of "a" by "s", placing the result in the receiver.
@@ -202,44 +202,44 @@ func (m *Matrix) Scale(s float64, a *Matrix) error {
 		return ErrNilMatrix
 	}
 
-	aRows, aCols := a.Dimensions()
-	aVals := make([]float64, aRows*aCols)
-	copy(aVals, a.values)
+	ar, ac := a.Dimensions()
+	as := make([]float64, ar*ac)
+	copy(as, a.vs)
 
-	m.rows, m.columns = aRows, aCols
-	m.values = make([]float64, m.rows*m.columns)
+	m.r, m.c = ar, ac
+	m.vs = make([]float64, m.r*m.c)
 
-	for idx := range m.values {
-		m.values[idx] = s * aVals[idx]
+	for idx := range m.vs {
+		m.vs[idx] = s * as[idx]
 	}
 
 	return nil
 }
 
 // Subtract subtracts "a" and "b" element-wise, placing the result in the receiver, in the order of "a - b"
-// It will return an error if the two matrices do not have the same dimensions.
+// It will return an error if the two matrices do not hase the same dimensions.
 // It will also return an error if "b == nil" or "a == nil".
 func (m *Matrix) Subtract(a, b *Matrix) error {
 	if a == nil || b == nil {
 		return ErrNilMatrix
 	}
 
-	aRows, aCols := a.Dimensions()
-	bRows, bCols := b.Dimensions()
-	if aRows != bRows || aCols != bCols {
+	ar, ac := a.Dimensions()
+	br, bc := b.Dimensions()
+	if ar != br || ac != bc {
 		return ErrDifferentDimensions
 	}
 
-	aVals, bVals := make([]float64, aRows*aCols), make([]float64, bRows*bCols)
-	copy(aVals, a.values)
-	copy(bVals, b.values)
+	as, bvs := make([]float64, ar*ac), make([]float64, br*bc)
+	copy(as, a.vs)
+	copy(bvs, b.vs)
 
-	m.rows = aRows
-	m.columns = aCols
-	m.values = make([]float64, m.rows*m.columns)
+	m.r = ar
+	m.c = ac
+	m.vs = make([]float64, m.r*m.c)
 
-	for idx := range m.values {
-		m.values[idx] = aVals[idx] - bVals[idx]
+	for idx := range m.vs {
+		m.vs[idx] = as[idx] - bvs[idx]
 	}
 
 	return nil
@@ -252,15 +252,15 @@ func (m *Matrix) Transpose(a *Matrix) error {
 		return ErrNilMatrix
 	}
 
-	aRows, aCols := a.Dimensions()
-	aVals := make([]float64, aRows*aCols)
-	copy(aVals, a.values)
+	ar, ac := a.Dimensions()
+	as := make([]float64, ar*ac)
+	copy(as, a.vs)
 
-	m.rows, m.columns = aCols, aRows
-	m.values = make([]float64, m.rows*m.columns)
+	m.r, m.c = ac, ar
+	m.vs = make([]float64, m.r*m.c)
 
-	for idx := range m.values {
-		m.values[idx] = aVals[(idx%aRows*aCols)+(idx/aRows)]
+	for idx := range m.vs {
+		m.vs[idx] = as[(idx%ar*ac)+(idx/ar)]
 	}
 
 	return nil
@@ -268,11 +268,11 @@ func (m *Matrix) Transpose(a *Matrix) error {
 
 // Values returns the values of the matrix in a "[][]float64" format.
 func (m *Matrix) Values() [][]float64 {
-	values := make([][]float64, m.rows)
+	vs := make([][]float64, m.r)
 
-	for rIndex := range values {
-		values[rIndex] = m.values[rIndex*m.columns : rIndex*m.columns+m.columns]
+	for rIndex := range vs {
+		vs[rIndex] = m.vs[rIndex*m.c : rIndex*m.c+m.c]
 	}
 
-	return values
+	return vs
 }
