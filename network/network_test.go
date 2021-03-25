@@ -1,6 +1,6 @@
 package network
 
-/*import (
+import (
 	"math"
 	"math/rand"
 	"testing"
@@ -78,26 +78,24 @@ func TestNew(t *testing.T) {
 						t.Error("Weights should not be nil")
 					}
 
-					wRows, wCols := l.weights.Dimensions()
-					if wRows != tc.layers[idx+1].Nodes {
-						t.Errorf("Expected rows of weights is %d, but got %d", tc.layers[idx+1].Nodes, wRows)
+					if l.weights.Rows != tc.layers[idx+1].Nodes {
+						t.Errorf("Expected rows of weights is %d, but got %d", tc.layers[idx+1].Nodes, l.weights.Rows)
 					}
 
-					if wCols != tc.layers[idx].Nodes {
-						t.Errorf("Expected columns of weights is %d, but got %d", tc.layers[idx].Nodes, wCols)
+					if l.weights.Columns != tc.layers[idx].Nodes {
+						t.Errorf("Expected columns of weights is %d, but got %d", tc.layers[idx].Nodes, l.weights.Columns)
 					}
 
 					if l.biases == nil {
 						t.Error("Biases should not be nil")
 					}
 
-					bRows, bCols := l.biases.Dimensions()
-					if bRows != tc.layers[idx+1].Nodes {
-						t.Errorf("Expected rows of weights is %d, but got %d", tc.layers[idx+1].Nodes, bRows)
+					if l.biases.Rows != tc.layers[idx+1].Nodes {
+						t.Errorf("Expected rows of weights is %d, but got %d", tc.layers[idx+1].Nodes, l.biases.Rows)
 					}
 
-					if bCols != 1 {
-						t.Errorf("Expected columns of weights is %d, but got %d", 1, bCols)
+					if l.biases.Columns != 1 {
+						t.Errorf("Expected columns of weights is %d, but got %d", 1, l.biases.Columns)
 					}
 				}
 
@@ -151,10 +149,10 @@ func Test_calculateLayerValues(t *testing.T) {
 				}
 
 				for lvIdx, lv := range vals {
-					if len(lv.Raw()) != len(tc.expectedValues[lvIdx]) {
-						t.Errorf("Expected length of values is %d, but got %d", len(tc.expectedValues[lvIdx]), len(lv.Raw()))
+					if len(lv.Values) != len(tc.expectedValues[lvIdx]) {
+						t.Errorf("Expected length of values is %d, but got %d", len(tc.expectedValues[lvIdx]), len(lv.Values))
 					}
-					for vIdx, v := range lv.Raw() {
+					for vIdx, v := range lv.Values {
 						if !isFloatInThreshold(v, tc.expectedValues[lvIdx][vIdx]) {
 							t.Errorf("Expected value of the layer is %f, but got %f", tc.expectedValues[lvIdx][vIdx], v)
 						}
@@ -245,16 +243,16 @@ func TestTrain(t *testing.T) {
 			} else if n == nil {
 				t.Error("Matrix should not be nil")
 			} else {
-				if len(vals) != len(tc.expectedValues) {
-					t.Errorf("Expected length of layer values is %d, but got %d", len(tc.expectedValues), len(vals))
+				if len(vals) != len(tc.targets) {
+					t.Errorf("Expected length of layer values is %d, but got %d", len(tc.targets), len(vals))
 				}
 
 				for idx, v := range vals {
-					if !isFloatInThreshold(v, tc.expectedValues[idx]) {
-						t.Errorf("Expected value of the layer is %f, but got %f", tc.expectedValues[idx], v)
+					if !isFloatInThreshold(v, tc.targets[idx]) {
+						t.Errorf("Expected value of the layer is %f, but got %f", tc.targets[idx], v)
 					}
 				}
 			}
 		})
 	}
-}*/
+}
