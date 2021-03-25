@@ -20,6 +20,7 @@ type layer struct {
 }
 
 // Network represents the structure of a neural network.
+// TODO: support import and export
 type Network struct {
 	learningRate float64
 	layers       []*layer

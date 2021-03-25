@@ -63,7 +63,7 @@ func TestNew(t *testing.T) {
 			} else if err != nil {
 				t.Errorf("Expected error is %v, but got %v", nil, err)
 			} else if n == nil {
-				t.Error("Matrix should not be nil")
+				t.Error("Network should not be nil")
 			} else {
 				if len(n.layers) != len(tc.layers)-1 {
 					t.Errorf("Expected length of layers is %d, but got %d", len(tc.layers)-1, len(n.layers))
@@ -142,7 +142,7 @@ func Test_calculateLayerValues(t *testing.T) {
 			} else if err != nil {
 				t.Errorf("Expected error is %v, but got %v", nil, err)
 			} else if n == nil {
-				t.Error("Matrix should not be nil")
+				t.Error("Network should not be nil")
 			} else {
 				if len(vals) != len(tc.expectedValues) {
 					t.Errorf("Expected length of layer values is %d, but got %d", len(tc.expectedValues), len(vals))
@@ -165,10 +165,9 @@ func Test_calculateLayerValues(t *testing.T) {
 
 func TestPredict(t *testing.T) {
 	testCases := []struct {
-		name           string
-		inputs         []float64
-		expectedValues []float64
-		expectedError  error
+		name            string
+		inputs, targets []float64
+		expectedError   error
 	}{
 		{"Normal", []float64{0.5}, []float64{-0.911547}, nil},
 		{"ErrNilInputSlice", nil, []float64{}, ErrNilInputSlice},
@@ -194,54 +193,7 @@ func TestPredict(t *testing.T) {
 			} else if err != nil {
 				t.Errorf("Expected error is %v, but got %v", nil, err)
 			} else if n == nil {
-				t.Error("Matrix should not be nil")
-			} else {
-				if len(vals) != len(tc.expectedValues) {
-					t.Errorf("Expected length of layer values is %d, but got %d", len(tc.expectedValues), len(vals))
-				}
-
-				for idx, v := range vals {
-					if !isFloatInThreshold(v, tc.expectedValues[idx]) {
-						t.Errorf("Expected value of the layer is %f, but got %f", tc.expectedValues[idx], v)
-					}
-				}
-			}
-		})
-	}
-}
-
-func TestTrain(t *testing.T) {
-	testCases := []struct {
-		name          string
-		inputs        []float64
-		targets       []float64
-		expectedError error
-	}{
-		{"Normal", []float64{0.5}, []float64{-0.911547}, nil},
-		{"ErrNilInputSlice", nil, []float64{}, ErrNilInputSlice},
-		{"matrix.ErrZeroRow", []float64{}, []float64{}, matrix.ErrZeroRow},
-	}
-
-	for _, tc := range testCases {
-		tc := tc
-		t.Run(tc.name, func(t *testing.T) {
-			t.Parallel()
-
-			n, _ := New([]Layer{
-				{len(tc.inputs), nil},
-				{len(tc.inputs), dummyActivationFunction},
-				{len(tc.inputs), dummyActivationFunction},
-			}, 0.1, rand.New(rand.NewSource(0)))
-
-			vals, err := n.Predict(tc.inputs)
-			if tc.expectedError != nil {
-				if err != tc.expectedError {
-					t.Errorf("Expected error is %v, but got %v", tc.expectedError, err)
-				}
-			} else if err != nil {
-				t.Errorf("Expected error is %v, but got %v", nil, err)
-			} else if n == nil {
-				t.Error("Matrix should not be nil")
+				t.Error("Network should not be nil")
 			} else {
 				if len(vals) != len(tc.targets) {
 					t.Errorf("Expected length of layer values is %d, but got %d", len(tc.targets), len(vals))
@@ -250,6 +202,97 @@ func TestTrain(t *testing.T) {
 				for idx, v := range vals {
 					if !isFloatInThreshold(v, tc.targets[idx]) {
 						t.Errorf("Expected value of the layer is %f, but got %f", tc.targets[idx], v)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestTrain(t *testing.T) {
+	type dataSet struct{ inputs, targets []float64 }
+	testCases := []struct {
+		name                   string
+		learningRate           float64
+		epoch                  int
+		learningData, testData []dataSet
+		layers                 []Layer
+		expectedError          error
+	}{
+		{
+			"ErrNilInputSlice", 0.1, 1, []dataSet{
+				{nil, []float64{}},
+			}, []dataSet{}, []Layer{
+				{1, nil},
+				{1, dummyActivationFunction},
+				{1, dummyActivationFunction},
+			}, ErrNilInputSlice,
+		},
+		{
+			"ErrNilTargetSlice", 0.1, 1, []dataSet{
+				{[]float64{}, nil},
+			}, []dataSet{}, []Layer{
+				{1, nil},
+				{1, dummyActivationFunction},
+				{1, dummyActivationFunction},
+			}, ErrNilTargetSlice,
+		},
+		{
+			"matrix.ErrZeroRow target matrix", 0.1, 1, []dataSet{
+				{[]float64{}, []float64{}},
+			}, []dataSet{}, []Layer{
+				{1, nil},
+				{1, dummyActivationFunction},
+				{1, dummyActivationFunction},
+			}, matrix.ErrZeroRow,
+		},
+		{
+			"matrix.ErrZeroRow input matrix", 0.1, 1, []dataSet{
+				{[]float64{}, []float64{0.5}},
+			}, []dataSet{}, []Layer{
+				{1, nil},
+				{1, dummyActivationFunction},
+				{1, dummyActivationFunction},
+			}, matrix.ErrZeroRow,
+		},
+		// {"Normal", []float64{0.5}, []float64{-0.911547}, nil},
+		// {"ErrNilInputSlice", nil, []float64{}, ErrNilInputSlice},
+		// {"matrix.ErrZeroRow", []float64{}, []float64{}, matrix.ErrZeroRow},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := rand.New(rand.NewSource(0))
+			n, _ := New(tc.layers, tc.learningRate, r)
+			if n == nil {
+				t.Error("Network should not be nil")
+			}
+
+			for e := 0; e < tc.epoch; e++ {
+				r.Shuffle(len(tc.learningData), func(i, j int) {
+					tc.learningData[i], tc.learningData[j] = tc.learningData[j], tc.learningData[i]
+				})
+
+				for _, ld := range tc.learningData {
+					err := n.Train(ld.inputs, ld.targets)
+					if tc.expectedError != nil {
+						if err != tc.expectedError {
+							t.Errorf("Expected error is %v, but got %v", tc.expectedError, err)
+						}
+					} else if err != nil {
+						t.Errorf("Expected error is %v, but got %v", nil, err)
+					}
+				}
+			}
+
+			for _, td := range tc.testData {
+				predictions, _ := n.Predict(td.inputs)
+				for idx, p := range predictions {
+					if !isFloatInThreshold(p, td.targets[idx]) {
+						t.Errorf("Expected prediction is %f, but got %f", td.targets[idx], p)
 					}
 				}
 			}
