@@ -2,23 +2,29 @@ package matrix
 
 import "errors"
 
-// ErrZeroRow is returned by any operation when the supplied number of rows is equal to, or less than zero.
-var ErrZeroRow = errors.New("number of rows must be greater than zero")
+// ErrZeroRow is returned by New when number of rows is equal to, or less than zero.
+var ErrZeroRow = errors.New("matrix: number of rows must be greater than zero")
 
-// ErrZeroColumns is returned by any operation when the supplied number of columns is equal to, or less than zero.
-var ErrZeroColumns = errors.New("number of columns must be greater than zero")
+// ErrZeroCol is returned by New when number of columns equal to, or less than zero.
+var ErrZeroCol = errors.New("matrix: number of rows must be greater than zero")
 
-// ErrNilValues is returned by any operation when the supplied values is nil.
-var ErrNilValues = errors.New("number of columns must be greater than zero")
+// ErrDataLength is returned by New when lenght of data is not equal to `r * c`
+var ErrDataLength = errors.New("matrix: length of the data must be equal to `r * c`")
 
-// ErrNotMatrix is returned by any operation when the supplied parameter is not a Matrix instance.
-// var ErrNotMatrix = errors.New("the supplied parameter is not a Matrix instance")
+// ErrNilFunction is returned by Apply when `fn` is nil.
+var ErrNilFunction = errors.New("matrix: function must not be nil")
 
-// ErrDifferentRows is returned by any operation when the supplied matrix does not have the same number of rows as the number of rows in the receiver
-var ErrDifferentRows = errors.New("number of rows in the supplied matrix must the same as the number of rows in the receiver")
+// ErrRowOutOfBounds is returned by At when the supplied row is out of bounds.
+var ErrRowOutOfBounds = errors.New("matrix: row out of bounds")
 
-// ErrDifferentColumns is returned by any operation when the supplied matrix does not have the same number of columns as the number of columns in the receiver
-var ErrDifferentColumns = errors.New("number of columns in the supplied matrix must the same as the number of columns in the receiver")
+// ErrColOutOfBounds is returned by At when the supplied column is out of bounds.
+var ErrColOutOfBounds = errors.New("matrix: column out of bounds")
 
-// ErrDataLength is returned by New when the length of the supplied values is not equal to the number of rows times the number of columns
-var ErrDataLength = errors.New("length of the values must be equal to the number of rows times the number of columns")
+// ErrNilMatrix is returned by any operation that is require a matrix as argument.
+var ErrNilMatrix = errors.New("matrix: matrix must not be nil")
+
+// ErrBadProductDimension is returned by MatrixProduct when the number of columns in `a` not equal to the number of rows in `b` matrix.
+var ErrBadProductDimension = errors.New("matrix: the number of columns in `a` matrix must be equal to the number of rows in `b` matrix")
+
+// ErrDifferentDimensions is returned by any operation that is require two matrix as argument, and the dimensions of the matrices not the same.
+var ErrDifferentDimensions = errors.New("matrix: the dimensions of the matrices must be the same")
