@@ -8,7 +8,7 @@ import (
 	"github.com/azuwey/gonetwork/matrix"
 )
 
-const float64EqualityThreshold = 0.02
+const float64EqualityThreshold = 0.05
 
 func isFloatInThreshold(v float64, t float64) bool {
 	if math.Abs(v-t) <= float64EqualityThreshold {
@@ -214,13 +214,23 @@ func TestTrain(t *testing.T) {
 	testCases := []struct {
 		name                   string
 		learningRate           float64
-		epoch                  int
 		learningData, testData []dataSet
 		layers                 []Layer
 		expectedError          error
 	}{
 		{
-			"ErrNilInputSlice", 0.1, 1, []dataSet{
+			"Normal", 0.1, []dataSet{
+				{[]float64{1, 0}, []float64{0}},
+			}, []dataSet{
+				{[]float64{1, 0}, []float64{-0.224604}},
+			}, []Layer{
+				{2, nil},
+				{2, dummyActivationFunction},
+				{1, dummyActivationFunction},
+			}, nil,
+		},
+		{
+			"ErrNilInputSlice", 0.1, []dataSet{
 				{nil, []float64{}},
 			}, []dataSet{}, []Layer{
 				{1, nil},
@@ -229,7 +239,7 @@ func TestTrain(t *testing.T) {
 			}, ErrNilInputSlice,
 		},
 		{
-			"ErrNilTargetSlice", 0.1, 1, []dataSet{
+			"ErrNilTargetSlice", 0.1, []dataSet{
 				{[]float64{}, nil},
 			}, []dataSet{}, []Layer{
 				{1, nil},
@@ -238,8 +248,17 @@ func TestTrain(t *testing.T) {
 			}, ErrNilTargetSlice,
 		},
 		{
-			"matrix.ErrZeroRow target matrix", 0.1, 1, []dataSet{
-				{[]float64{}, []float64{}},
+			"ErrBadTargetSlice", 0.1, []dataSet{
+				{[]float64{0.5}, []float64{0.5, 0.5}},
+			}, []dataSet{}, []Layer{
+				{1, nil},
+				{1, dummyActivationFunction},
+				{1, dummyActivationFunction},
+			}, ErrBadTargetSlice,
+		},
+		{
+			"matrix.ErrZeroRow target matrix", 0.1, []dataSet{
+				{[]float64{0.5}, []float64{}},
 			}, []dataSet{}, []Layer{
 				{1, nil},
 				{1, dummyActivationFunction},
@@ -247,7 +266,7 @@ func TestTrain(t *testing.T) {
 			}, matrix.ErrZeroRow,
 		},
 		{
-			"matrix.ErrZeroRow input matrix", 0.1, 1, []dataSet{
+			"matrix.ErrZeroRow input matrix", 0.1, []dataSet{
 				{[]float64{}, []float64{0.5}},
 			}, []dataSet{}, []Layer{
 				{1, nil},
@@ -255,9 +274,95 @@ func TestTrain(t *testing.T) {
 				{1, dummyActivationFunction},
 			}, matrix.ErrZeroRow,
 		},
-		// {"Normal", []float64{0.5}, []float64{-0.911547}, nil},
-		// {"ErrNilInputSlice", nil, []float64{}, ErrNilInputSlice},
-		// {"matrix.ErrZeroRow", []float64{}, []float64{}, matrix.ErrZeroRow},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			r := rand.New(rand.NewSource(0))
+			n, _ := New(tc.layers, tc.learningRate, r)
+			if n == nil {
+				t.Error("Network should not be nil")
+			}
+
+			for _, ld := range tc.learningData {
+				err := n.Train(ld.inputs, ld.targets)
+				if tc.expectedError != nil {
+					if err != tc.expectedError {
+						t.Errorf("Expected error is %v, but got %v", tc.expectedError, err)
+					}
+				} else if err != nil {
+					t.Errorf("Expected error is %v, but got %v", nil, err)
+					t.FailNow()
+				}
+			}
+
+			for _, td := range tc.testData {
+				predictions, _ := n.Predict(td.inputs)
+				for idx, p := range predictions {
+					if !isFloatInThreshold(p, td.targets[idx]) {
+						t.Errorf("Expected prediction is %f, but got %f", td.targets[idx], p)
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestTrain_long(t *testing.T) {
+	// TODO: move this to an example
+	type dataSet struct{ inputs, targets []float64 }
+	testCases := []struct {
+		name                   string
+		learningRate           float64
+		epoch                  int
+		learningData, testData []dataSet
+		layers                 []Layer
+		expectedError          error
+	}{
+		{
+			"XOR", 0.1, 30000, []dataSet{
+				{[]float64{0, 0}, []float64{0}},
+				{[]float64{0, 1}, []float64{1}},
+				{[]float64{1, 0}, []float64{1}},
+				{[]float64{1, 1}, []float64{0}},
+			}, []dataSet{
+				{[]float64{0, 0}, []float64{0}},
+				{[]float64{0, 1}, []float64{1}},
+				{[]float64{1, 0}, []float64{1}},
+				{[]float64{1, 1}, []float64{0}},
+			}, []Layer{
+				{2, nil},
+				{2, TanH},
+				{1, LogisticSigmoid},
+			}, nil,
+		},
+		{
+			"4-bit counter", 0.1, 30000, []dataSet{
+				{[]float64{0, 0, 0, 0}, []float64{0, 0, 0, 1}},
+				{[]float64{0, 0, 0, 1}, []float64{0, 0, 1, 0}},
+				{[]float64{0, 0, 1, 0}, []float64{0, 0, 1, 1}},
+				{[]float64{0, 0, 1, 1}, []float64{0, 1, 0, 0}},
+				{[]float64{0, 1, 0, 0}, []float64{0, 1, 0, 1}},
+				{[]float64{0, 1, 0, 1}, []float64{0, 1, 1, 0}},
+				{[]float64{0, 1, 1, 0}, []float64{0, 1, 1, 1}},
+				{[]float64{0, 1, 1, 1}, []float64{1, 0, 0, 0}},
+				{[]float64{1, 0, 0, 0}, []float64{1, 0, 0, 1}},
+				{[]float64{1, 0, 0, 1}, []float64{1, 0, 1, 0}},
+				{[]float64{1, 0, 1, 0}, []float64{1, 0, 1, 1}},
+				{[]float64{1, 0, 1, 1}, []float64{1, 1, 0, 0}},
+				{[]float64{1, 1, 0, 0}, []float64{1, 1, 0, 1}},
+				{[]float64{1, 1, 1, 0}, []float64{1, 1, 1, 1}},
+			}, []dataSet{
+				{[]float64{1, 1, 0, 1}, []float64{1, 1, 1, 0}},
+			}, []Layer{
+				{4, nil},
+				{16, TanH},
+				{4, LogisticSigmoid},
+			}, nil,
+		},
 	}
 
 	for _, tc := range testCases {
@@ -284,6 +389,7 @@ func TestTrain(t *testing.T) {
 						}
 					} else if err != nil {
 						t.Errorf("Expected error is %v, but got %v", nil, err)
+						t.FailNow()
 					}
 				}
 			}
