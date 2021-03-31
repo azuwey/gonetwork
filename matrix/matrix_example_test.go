@@ -149,7 +149,7 @@ func Example_transpose() {
 	mat.Transpose(mat)
 	fmt.Println(mat.Values)
 	// Output:
-	// [0 3 1 4 2 5]
+	// [0 2 4 1 3 5]
 }
 
 func Example_export() {
