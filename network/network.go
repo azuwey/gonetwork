@@ -118,63 +118,42 @@ func (n *Network) Train(i, t []float64) error {
 		return ErrNilTargetSlice
 	}
 
+	lVals, err := n.calculateLayerValues(i)
+	if !errors.Is(err, nil) {
+		return err
+	}
+
 	tMat, err := matrix.New(len(t), 1, t)
 	if !errors.Is(err, nil) {
 		return err
 	}
 
-	lVals, err := n.calculateLayerValues(i)
-	if !errors.Is(err, nil) {
-		return err
+	if lVals[len(lVals)-1].Rows != tMat.Rows {
+		return ErrBadTargetSlice
 	}
 
 	lastErrVal := &matrix.Matrix{}
 	for idx := len(n.layers) - 1; idx >= 0; idx-- {
 		e := &matrix.Matrix{}
 		if idx == len(n.layers)-1 {
-			if e.Subtract(tMat, lVals[idx+1]); !errors.Is(err, nil) {
-				return err
-			}
+			e.Subtract(tMat, lVals[idx+1])
 		} else {
-			if err := e.Transpose(n.layers[idx+1].weights); !errors.Is(err, nil) {
-				return err
-			}
-
-			if err := e.Product(e, lastErrVal); !errors.Is(err, nil) {
-				return err
-			}
+			e.Transpose(n.layers[idx+1].weights)
+			e.Product(e, lastErrVal)
 		}
 		lastErrVal = e
 
 		g := &matrix.Matrix{}
-		if err := g.Apply(n.layers[idx].activationFunction.dFn(lVals[idx+1]), lVals[idx+1]); !errors.Is(err, nil) {
-			return err
-		}
-
-		if err := g.Multiply(e, g); !errors.Is(err, nil) {
-			return err
-		}
+		g.Apply(n.layers[idx].activationFunction.dFn(lVals[idx+1]), lVals[idx+1])
+		g.Multiply(e, g)
 
 		d := &matrix.Matrix{}
-		if err := d.Transpose(lVals[idx]); !errors.Is(err, nil) {
-			return err
-		}
+		d.Transpose(lVals[idx])
+		d.Product(g, d)
+		d.Scale(n.learningRate, d)
 
-		if err := d.Product(g, d); !errors.Is(err, nil) {
-			return err
-		}
-
-		if err := d.Scale(n.learningRate, d); !errors.Is(err, nil) {
-			return err
-		}
-
-		if err := n.layers[idx].weights.Add(n.layers[idx].weights, d); !errors.Is(err, nil) {
-			return err
-		}
-
-		if err := n.layers[idx].biases.Add(n.layers[idx].biases, g); !errors.Is(err, nil) {
-			return err
-		}
+		n.layers[idx].weights.Add(n.layers[idx].weights, d)
+		n.layers[idx].biases.Add(n.layers[idx].biases, g)
 	}
 
 	return nil
