@@ -525,7 +525,7 @@ func TestTranspose(t *testing.T) {
 		expectedValues             []float64
 		expectedError              error
 	}{
-		{"Normal", &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, 3, 2, []float64{0, 2, 4, 1, 3, 5}, nil},
+		{"Normal", &Matrix{[]float64{0, 1, 2, 3, 4, 5}, 3, 2}, 2, 3, []float64{0, 3, 1, 4, 2, 5}, nil},
 		{"ErrNilMatrix", nil, 0, 0, nil, ErrNilMatrix},
 	}
 

@@ -244,11 +244,11 @@ func (m *Matrix) Transpose(aMat *Matrix) error {
 	aVals := make([]float64, aRows*aCols)
 	copy(aVals, aMat.Values)
 
-	m.Rows, m.Columns = aRows, aCols
+	m.Rows, m.Columns = aCols, aRows
 	m.Values = make([]float64, m.Rows*m.Columns)
 
 	for idx := range m.Values {
-		m.Values[idx] = aVals[(idx%aRows*aCols)+(idx/aRows)]
+		m.Values[idx] = aVals[(idx%aCols*aRows)+(idx/aCols)]
 	}
 
 	return nil
