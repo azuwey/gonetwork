@@ -34,6 +34,12 @@ type Network struct {
 	rand         *rand.Rand
 }
 
+// layerValues is used by calculateLayerValues to return both activated and unactivated values
+type layerValues struct {
+	activated   *matrix.Matrix
+	unactivated *matrix.Matrix
+}
+
 // New creates a new neural network with "ls" layer structure,
 // the first element in the "ls" represents the input layer,
 // the last element in the "ls" represents the output layer.
@@ -81,26 +87,28 @@ func New(model *Model, r *rand.Rand) (*Network, error) {
 	return n, nil
 }
 
-func (n *Network) calculateLayerValues(i []float64) ([]*matrix.Matrix, error) {
+func (n *Network) calculateLayerValues(i []float64) ([]*layerValues, error) {
 	iMat, err := matrix.New(len(i), 1, i)
 	if !errors.Is(err, nil) {
 		return nil, err
 	}
 
-	lVals := make([]*matrix.Matrix, len(n.layers)+1)
-	lVals[0] = iMat
+	vals := make([]*layerValues, len(n.layers)+1)
+	vals[0] = &layerValues{iMat, nil}
 
-	for idx := range lVals[1:] {
-		v := &matrix.Matrix{}
+	for idx := range vals[1:] {
+		uV := &matrix.Matrix{}
 
-		v.Product(n.layers[idx].weights, lVals[idx])
-		v.Add(n.layers[idx].biases, v)
-		v.Apply(n.layers[idx].activationFunction.aFn(v), v)
+		uV.Product(n.layers[idx].weights, vals[idx].activated)
+		uV.Add(n.layers[idx].biases, uV)
 
-		lVals[idx+1] = v
+		aV, _ := matrix.Copy(uV)
+		aV.Apply(n.layers[idx].activationFunction.aFn(aV), aV)
+
+		vals[idx+1] = &layerValues{aV, uV}
 	}
 
-	return lVals, nil
+	return vals, nil
 }
 
 // Predict ...
@@ -114,7 +122,7 @@ func (n *Network) Predict(i []float64) ([]float64, error) {
 		return nil, err
 	}
 
-	return lVals[len(lVals)-1].Values, nil
+	return lVals[len(lVals)-1].activated.Values, nil
 }
 
 // Train ...
@@ -137,7 +145,7 @@ func (n *Network) Train(i, t []float64) error {
 		return err
 	}
 
-	if lVals[len(lVals)-1].Rows != tMat.Rows {
+	if lVals[len(lVals)-1].activated.Rows != tMat.Rows {
 		return ErrBadTargetSlice
 	}
 
@@ -145,7 +153,7 @@ func (n *Network) Train(i, t []float64) error {
 	for idx := len(n.layers) - 1; idx >= 0; idx-- {
 		e := &matrix.Matrix{}
 		if idx == len(n.layers)-1 {
-			e.Subtract(tMat, lVals[idx+1])
+			e.Subtract(tMat, lVals[idx+1].activated)
 		} else {
 			e.Transpose(n.layers[idx+1].weights)
 			e.Product(e, lastErrVal)
@@ -153,11 +161,11 @@ func (n *Network) Train(i, t []float64) error {
 		lastErrVal = e
 
 		g := &matrix.Matrix{}
-		g.Apply(n.layers[idx].activationFunction.dFn(lVals[idx+1]), lVals[idx+1])
+		g.Apply(n.layers[idx].activationFunction.dFn(lVals[idx+1].unactivated), lVals[idx+1].unactivated)
 		g.Multiply(e, g)
 
 		d := &matrix.Matrix{}
-		d.Transpose(lVals[idx])
+		d.Transpose(lVals[idx].activated)
 		d.Product(g, d)
 		d.Scale(n.learningRate, d)
 

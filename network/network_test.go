@@ -8,10 +8,8 @@ import (
 	"github.com/azuwey/gonetwork/matrix"
 )
 
-const float64EqualityThreshold = 0.02
-
-func isFloatInThreshold(v float64, t float64) bool {
-	if math.Abs(v-t) <= float64EqualityThreshold {
+func isFloatInThreshold(v float64, t float64, th float64) bool {
+	if math.Abs(v-t) <= th {
 		return true
 	} else {
 		return false
@@ -166,11 +164,11 @@ func TestCalculateLayerValues(t *testing.T) {
 				}
 
 				for lvIdx, lv := range vals {
-					if len(lv.Values) != len(tc.expectedValues[lvIdx]) {
-						t.Errorf("Expected length of values is %d, but got %d", len(tc.expectedValues[lvIdx]), len(lv.Values))
+					if len(lv.activated.Values) != len(tc.expectedValues[lvIdx]) {
+						t.Errorf("Expected length of values is %d, but got %d", len(tc.expectedValues[lvIdx]), len(lv.activated.Values))
 					}
-					for vIdx, v := range lv.Values {
-						if !isFloatInThreshold(v, tc.expectedValues[lvIdx][vIdx]) {
+					for vIdx, v := range lv.activated.Values {
+						if !isFloatInThreshold(v, tc.expectedValues[lvIdx][vIdx], 0.03) {
 							t.Errorf("Expected value of the layer is %f, but got %f", tc.expectedValues[lvIdx][vIdx], v)
 						}
 					}
@@ -217,7 +215,7 @@ func TestPredict(t *testing.T) {
 				}
 
 				for idx, v := range vals {
-					if !isFloatInThreshold(v, tc.targets[idx]) {
+					if !isFloatInThreshold(v, tc.targets[idx], 0.03) {
 						t.Errorf("Expected value of the layer is %f, but got %f", tc.targets[idx], v)
 					}
 				}
@@ -318,7 +316,7 @@ func TestTrain(t *testing.T) {
 			for _, td := range tc.testData {
 				predictions, _ := n.Predict(td.inputs)
 				for idx, p := range predictions {
-					if !isFloatInThreshold(p, td.targets[idx]) {
+					if !isFloatInThreshold(p, td.targets[idx], 0.03) {
 						t.Errorf("Expected prediction is %f, but got %f", td.targets[idx], p)
 					}
 				}
@@ -332,14 +330,13 @@ func TestTrain(t *testing.T) {
 	type dataSet struct{ inputs, targets []float64 }
 	testCases := []struct {
 		name                   string
-		learningRate           float64
 		epoch                  int
 		learningData, testData []dataSet
-		layers                 []LayerDescriptor
+		model                  *Model
 		expectedError          error
 	}{
 		{
-			"XOR", 0.1, 30000, []dataSet{
+			"XOR", 30000, []dataSet{
 				{[]float64{0, 0}, []float64{0}},
 				{[]float64{0, 1}, []float64{1}},
 				{[]float64{1, 0}, []float64{1}},
@@ -349,14 +346,14 @@ func TestTrain(t *testing.T) {
 				{[]float64{0, 1}, []float64{1}},
 				{[]float64{1, 0}, []float64{1}},
 				{[]float64{1, 1}, []float64{0}},
-			}, []LayerDescriptor{
-				{2, ""},
-				{2, "TanH"},
-				{1, "LogisticSigmoid"},
-			}, nil,
+			}, &Model{0.1, []LayerDescriptor{
+				{2, "", nil, nil},
+				{2, "TanH", nil, nil},
+				{1, "LogisticSigmoid", nil, nil},
+			}}, nil,
 		},
 		{
-			"4-bit counter", 0.1, 30000, []dataSet{
+			"4-bit counter", 30000, []dataSet{
 				{[]float64{0, 0, 0, 0}, []float64{0, 0, 0, 1}},
 				{[]float64{0, 0, 0, 1}, []float64{0, 0, 1, 0}},
 				{[]float64{0, 0, 1, 0}, []float64{0, 0, 1, 1}},
@@ -373,11 +370,11 @@ func TestTrain(t *testing.T) {
 				{[]float64{1, 1, 1, 0}, []float64{1, 1, 1, 1}},
 			}, []dataSet{
 				{[]float64{1, 1, 0, 1}, []float64{1, 1, 1, 0}},
-			}, []LayerDescriptor{
-				{4, ""},
-				{16, "TanH"},
-				{4, "LogisticSigmoid"},
-			}, nil,
+			}, &Model{0.3, []LayerDescriptor{
+				{4, "", nil, nil},
+				{16, "TanH", nil, nil},
+				{4, "LogisticSigmoid", nil, nil},
+			}}, nil,
 		},
 	}
 
@@ -387,7 +384,7 @@ func TestTrain(t *testing.T) {
 			t.Parallel()
 
 			r := rand.New(rand.NewSource(0))
-			n, _ := New(tc.layers, tc.learningRate, r)
+			n, _ := New(tc.model, r)
 			if n == nil {
 				t.Error("Network should not be nil")
 			}
