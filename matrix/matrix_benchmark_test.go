@@ -132,26 +132,3 @@ func BenchmarkTranspose(b *testing.B) {
 		mat.Transpose(mat)
 	}
 }
-
-func BenchmarkExport(b *testing.B) {
-	r := rand.New(rand.NewSource(0))
-	vals := []float64{r.Float64()}
-	mat := &Matrix{vals, 1, 1}
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		mat.Export()
-	}
-}
-
-func BenchmarkImport(b *testing.B) {
-	r := rand.New(rand.NewSource(0))
-	vals := []float64{r.Float64()}
-	mat := &Matrix{vals, 1, 1}
-	mJSON, _ := mat.Export()
-
-	b.ResetTimer()
-	for i := 0; i < b.N; i++ {
-		mat.Import(mJSON)
-	}
-}

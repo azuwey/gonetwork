@@ -151,24 +151,3 @@ func Example_transpose() {
 	// Output:
 	// [0 2 4 1 3 5]
 }
-
-func Example_export() {
-	mat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
-
-	json, _ := mat.Export()
-	fmt.Println(string(json))
-	// Output:
-	// {"values":[0,1,2,3,4,5],"rows":2,"Columns":3}
-}
-
-func Example_import() {
-	mJSON := []byte(`{"values":[0,1,2,3,4,5],"rows":2,"Columns":3}`)
-	mat := &matrix.Matrix{}
-
-	mat.Import(mJSON)
-	fmt.Println(mat.Values)
-	fmt.Println(mat.Rows, mat.Columns)
-	// Output:
-	// [0 1 2 3 4 5]
-	// 2 3
-}
