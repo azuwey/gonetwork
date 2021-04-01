@@ -7,23 +7,30 @@ import (
 	"github.com/azuwey/gonetwork/matrix"
 )
 
-// Layer used to generate the layers in the network.
-type Layer struct {
-	Nodes              int
-	ActivationFunction *ActivationFunction
+// LayerDescriptor used to generate the layers in the network.
+type LayerDescriptor struct {
+	Nodes              int       `json:"nodes"`
+	ActivationFunction string    `json:"activationFunction"`
+	Weights            []float64 `json:"weights"`
+	Biases             []float64 `json:"biases"`
 }
 
-type layer struct {
+type Model struct {
+	LearningRate float64           `json:"learningRate"`
+	Layers       []LayerDescriptor `json:"layers"`
+}
+
+// Layer represents a layer in the network
+type Layer struct {
 	weights            *matrix.Matrix
 	biases             *matrix.Matrix
 	activationFunction *ActivationFunction
 }
 
 // Network represents the structure of a neural network.
-// TODO: support import and export
 type Network struct {
 	learningRate float64
-	layers       []*layer
+	layers       []*Layer
 	rand         *rand.Rand
 }
 
@@ -32,12 +39,12 @@ type Network struct {
 // the last element in the "ls" represents the output layer.
 // It will return an error if "ls == nil || len(ls) < 3", "lr <= 0 || lr > 1", "r == nil".
 // It will also return an error if any of the layers activationFunction is nill except for the input layer.
-func New(ls []Layer, lr float64, r *rand.Rand) (*Network, error) {
-	if ls == nil || len(ls) < 3 {
+func New(model *Model, r *rand.Rand) (*Network, error) {
+	if model.Layers == nil || len(model.Layers) < 3 {
 		return nil, ErrLayerStructureLength
 	}
 
-	if lr <= 0 || lr > 1 {
+	if model.LearningRate <= 0 || model.LearningRate > 1 {
 		return nil, ErrLearningRateRange
 	}
 
@@ -45,29 +52,31 @@ func New(ls []Layer, lr float64, r *rand.Rand) (*Network, error) {
 		return nil, ErrNilRand
 	}
 
-	ly := make([]*layer, len(ls)-1)
+	lyrs := make([]*Layer, len(model.Layers)-1)
 	rnd := func(v float64, _, _ int, _ []float64) float64 {
 		return r.Float64()*2 - 1
 	}
 
-	for idx, n := range ls[1:] {
-		if n.ActivationFunction == nil {
-			return nil, ErrNilActivationFn
-		}
-
-		w, err := matrix.New(n.Nodes, ls[idx].Nodes, make([]float64, n.Nodes*ls[idx].Nodes))
+	for idx, lyr := range model.Layers[1:] {
+		w, err := matrix.New(lyr.Nodes, model.Layers[idx].Nodes, lyr.Weights)
 		if !errors.Is(err, nil) {
 			return nil, err
 		}
 
-		b, _ := matrix.New(n.Nodes, 1, make([]float64, n.Nodes))
+		b, _ := matrix.New(lyr.Nodes, 1, lyr.Weights)
 
 		w.Apply(rnd, w)
 		b.Apply(rnd, b)
-		ly[idx] = &layer{w, b, n.ActivationFunction}
+
+		aFn, ok := ActivationFunctions[lyr.ActivationFunction]
+		if !ok {
+			return nil, ErrActivationFnNotExist
+		}
+
+		lyrs[idx] = &Layer{w, b, aFn}
 	}
 
-	n := &Network{lr, ly, r}
+	n := &Network{model.LearningRate, lyrs, r}
 
 	return n, nil
 }

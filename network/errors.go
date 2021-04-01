@@ -2,8 +2,8 @@ package network
 
 import "errors"
 
-// ErrNilActivationFn is returned by New when `activationFunction` is nil in any layer except the input layer.
-var ErrNilActivationFn = errors.New("network: activation function must not be nil")
+// ErrNilActivationFn is returned by New when `activationFunction` is not exists in ActivationFunctions this is not validation on the input layer.
+var ErrActivationFnNotExist = errors.New("network: activation function must be exist in ActivationFunctions map")
 
 // ErrNilLayerStruct is returned by New when `ls` is nil.
 var ErrNilLayerStructure = errors.New("network: layer struct must not be nil")

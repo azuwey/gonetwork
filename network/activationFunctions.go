@@ -97,3 +97,12 @@ var Softmax *ActivationFunction = &ActivationFunction{
 		}
 	},
 }
+
+// ActivationFunctions ...
+var ActivationFunctions = map[string]*ActivationFunction{
+	"LogisticSigmoid": LogisticSigmoid,
+	"TanH":            TanH,
+	"ReLU":            ReLU,
+	"LeakyReLU":       LeakyReLU,
+	"Softmax":         Softmax,
+}
