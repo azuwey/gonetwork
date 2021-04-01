@@ -2,9 +2,9 @@ package matrix
 
 // Matrix represents a mathematical Matrix.
 type Matrix struct {
-	Values  []float64 `json:"values"`  // Values of the matrix
-	Rows    int       `json:"rows"`    // Number of rows
-	Columns int       `json:"Columns"` // Number of columns
+	Values  []float64 // Values of the matrix
+	Rows    int       // Number of rows
+	Columns int       // Number of columns
 }
 
 // ApplyFn represents a function that is applied to the matrix when Apply is called
