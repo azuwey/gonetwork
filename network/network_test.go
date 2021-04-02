@@ -106,11 +106,11 @@ func TestNew(t *testing.T) {
 					}
 
 					if l.biases.Rows != tc.model.Layers[idx+1].Nodes {
-						t.Errorf("Expected rows of weights is %d, but got %d", tc.model.Layers[idx+1].Nodes, l.biases.Rows)
+						t.Errorf("Expected biases of weights is %d, but got %d", tc.model.Layers[idx+1].Nodes, l.biases.Rows)
 					}
 
 					if l.biases.Columns != 1 {
-						t.Errorf("Expected columns of weights is %d, but got %d", 1, l.biases.Columns)
+						t.Errorf("Expected biases of weights is %d, but got %d", 1, l.biases.Columns)
 					}
 				}
 
@@ -316,7 +316,7 @@ func TestTrain(t *testing.T) {
 			for _, td := range tc.testData {
 				predictions, _ := n.Predict(td.inputs)
 				for idx, p := range predictions {
-					if !isFloatInThreshold(p, td.targets[idx], 0.03) {
+					if !isFloatInThreshold(p, td.targets[idx], 0.01) {
 						t.Errorf("Expected prediction is %f, but got %f", td.targets[idx], p)
 					}
 				}
