@@ -54,34 +54,34 @@ func Example_add() {
 func Example_apply() {
 	mat, _ := matrix.New(2, 3, []float64{0, 1, 2, 3, 4, 5})
 
-	mat.Apply(func(v float64, r, c int, s []float64) float64 {
+	mat.Apply(func(v float64, idx int, s []float64) float64 {
 		fmt.Printf("Slice: %v;\n", s)
-		fmt.Printf("Row: %d; Column: %d; Value: %f;\n", r, c, v)
+		fmt.Printf("Index: %d; Value: %f;\n", idx, v)
 		newValue := v + 2
-		fmt.Printf("Row: %d; Column: %d; New value: %f;\n", r, c, newValue)
+		fmt.Printf("Index: %d; New value: %f;\n", idx, newValue)
 		return newValue
 	}, mat)
 
 	fmt.Println(mat.Values)
 	// Output:
 	// Slice: [0 1 2 3 4 5];
-	// Row: 0; Column: 0; Value: 0.000000;
-	// Row: 0; Column: 0; New value: 2.000000;
+	// Index: 0; Value: 0.000000;
+	// Index: 0; New value: 2.000000;
 	// Slice: [2 1 2 3 4 5];
-	// Row: 0; Column: 1; Value: 1.000000;
-	// Row: 0; Column: 1; New value: 3.000000;
+	// Index: 1; Value: 1.000000;
+	// Index: 1; New value: 3.000000;
 	// Slice: [2 3 2 3 4 5];
-	// Row: 0; Column: 2; Value: 2.000000;
-	// Row: 0; Column: 2; New value: 4.000000;
+	// Index: 2; Value: 2.000000;
+	// Index: 2; New value: 4.000000;
 	// Slice: [2 3 4 3 4 5];
-	// Row: 1; Column: 0; Value: 3.000000;
-	// Row: 1; Column: 0; New value: 5.000000;
+	// Index: 3; Value: 3.000000;
+	// Index: 3; New value: 5.000000;
 	// Slice: [2 3 4 5 4 5];
-	// Row: 1; Column: 1; Value: 4.000000;
-	// Row: 1; Column: 1; New value: 6.000000;
+	// Index: 4; Value: 4.000000;
+	// Index: 4; New value: 6.000000;
 	// Slice: [2 3 4 5 6 5];
-	// Row: 1; Column: 2; Value: 5.000000;
-	// Row: 1; Column: 2; New value: 7.000000;
+	// Index: 5; Value: 5.000000;
+	// Index: 5; New value: 7.000000;
 	// [2 3 4 5 6 7]
 }
 

@@ -180,7 +180,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestApply(t *testing.T) {
-	addFn := func(v float64, r, c int, s []float64) float64 {
+	addFn := func(v float64, _ int, _ []float64) float64 {
 		return v * 2
 	}
 	testCases := []struct {
@@ -227,7 +227,7 @@ func TestApply(t *testing.T) {
 		r := rand.New(rand.NewSource(0))
 		v := []float64{r.Float64()}
 		a, _ := New(1, 1, v)
-		err := a.Apply(func(v float64, r, c int, s []float64) float64 {
+		err := a.Apply(func(v float64, _ int, _ []float64) float64 {
 			return v * 2
 		}, a)
 		if err != nil {

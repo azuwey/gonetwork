@@ -8,7 +8,7 @@ type Matrix struct {
 }
 
 // ApplyFn represents a function that is applied to the matrix when Apply is called
-type ApplyFn func(v float64, r, c int, s []float64) float64
+type ApplyFn func(value float64, idx int, self []float64) float64
 
 // New creates a new Matrix with "r" rows and "c" columns, the "vals" must be arranged in row-major order.
 // If "vals == nil", a new slice will be allocated with "r * c" size.
@@ -101,9 +101,8 @@ func (m *Matrix) Apply(fn ApplyFn, aMat *Matrix) error {
 	m.Values = make([]float64, m.Rows*m.Columns)
 
 	for idx := range m.Values {
-		r := idx / m.Columns
 		s := append(m.Values[:idx], aVals[idx:]...)
-		m.Values[idx] = fn(aVals[idx], r, idx-(r*m.Columns), s)
+		m.Values[idx] = fn(aVals[idx], idx, s)
 	}
 
 	return nil
