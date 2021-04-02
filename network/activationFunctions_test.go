@@ -16,7 +16,7 @@ func TestActivationFunction_activate(t *testing.T) {
 		{"TanH", TanH, []float64{0.5}, []float64{0.46211}, []float64{0.78644}},
 		{"ReLU", ReLU, []float64{0.5, -0.1}, []float64{0.5, 0}, []float64{1, 0}},
 		{"LeakyReLU", LeakyReLU, []float64{0.5, -0.1}, []float64{0.5, -0.001}, []float64{1, 0.01}},
-		{"Softmax 2", Softmax, []float64{1.43, -0.4, 0.23}, []float64{0.684178, 0.109751, 0.206070}, []float64{0.216078, -0.075090, -0.140989}},
+		{"Softmax", Softmax, []float64{1.43, -0.4, 0.23}, []float64{0.684178, 0.109751, 0.206070}, []float64{0.216078, -0.075090, -0.140989}},
 		{"StableSoftmax", StableSoftmax, []float64{1000, 2000, 3000}, []float64{0, 0, 1}, []float64{0, 0, 0}},
 	}
 
