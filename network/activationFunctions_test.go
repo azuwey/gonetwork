@@ -16,8 +16,8 @@ func TestActivationFunction_activate(t *testing.T) {
 		{"TanH", TanH, []float64{0.5}, []float64{0.46211}, []float64{0.78644}},
 		{"ReLU", ReLU, []float64{0.5, -0.1}, []float64{0.5, 0}, []float64{1, 0}},
 		{"LeakyReLU", LeakyReLU, []float64{0.5, -0.1}, []float64{0.5, -0.001}, []float64{1, 0.01}},
-		{"Softmax", Softmax, []float64{0.1, 0.2}, []float64{0.475021, (1 - 0.475021)}, []float64{0.249376, 0.249376}},
-		{"StableSoftmax", StableSoftmax, []float64{1000, 2000}, []float64{0, 1}, []float64{0, 0}},
+		{"Softmax 2", Softmax, []float64{1.43, -0.4, 0.23}, []float64{0.684178, 0.109751, 0.206070}, []float64{0.216078, -0.075090, -0.140989}},
+		{"StableSoftmax", StableSoftmax, []float64{1000, 2000, 3000}, []float64{0, 0, 1}, []float64{0, 0, 0}},
 	}
 
 	for _, tc := range testCases {
@@ -27,17 +27,20 @@ func TestActivationFunction_activate(t *testing.T) {
 
 			m, _ := matrix.New(len(tc.inputs), 1, tc.inputs)
 			aFn := tc.activationFunction.aFn(m)
-			dFn := tc.activationFunction.dFn(m)
 
-			for idx, i := range tc.inputs {
-				aOut := aFn(i, idx, 0, tc.inputs)
-				if !isFloatInThreshold(aOut, tc.exceptedActivatedOutputs[idx], 0.00001) {
-					t.Errorf("expected activated output is %f, but got %f", tc.exceptedActivatedOutputs[idx], aOut)
+			m.Apply(aFn, m)
+			for idx, out := range tc.exceptedActivatedOutputs {
+				if !isFloatInThreshold(m.Values[idx], out, 0.00001) {
+					t.Errorf("expected activated output is %f, but got %f", out, m.Values[idx])
 				}
+			}
 
-				dOut := dFn(i, idx, 0, tc.inputs)
-				if !isFloatInThreshold(dOut, tc.exceptedDeactivatedOutputs[idx], 0.00001) {
-					t.Errorf("expected deactivated output is %f, but got %f", tc.exceptedDeactivatedOutputs[idx], dOut)
+			m, _ = matrix.New(len(tc.inputs), 1, tc.inputs)
+			dFn := tc.activationFunction.dFn(m)
+			m.Apply(dFn, m)
+			for idx, out := range tc.exceptedDeactivatedOutputs {
+				if !isFloatInThreshold(m.Values[idx], out, 0.00001) {
+					t.Errorf("expected deactivated output is %f, but got %f", out, m.Values[idx])
 				}
 			}
 		})

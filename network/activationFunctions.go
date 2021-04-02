@@ -32,12 +32,12 @@ func calculateMax(s []float64) float64 {
 // LogisticSigmoid ...
 var LogisticSigmoid *ActivationFunction = &ActivationFunction{
 	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
-		return func(v float64, _, _ int, _ []float64) float64 {
+		return func(v float64, _ int, _ []float64) float64 {
 			return 1 / (1 + math.Exp(-v))
 		}
 	},
 	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
-		return func(v float64, _, _ int, _ []float64) float64 {
+		return func(v float64, _ int, _ []float64) float64 {
 			v = (1 / (1 + math.Exp(-v)))
 			return v * (1 - v)
 		}
@@ -47,12 +47,12 @@ var LogisticSigmoid *ActivationFunction = &ActivationFunction{
 // TanH ...
 var TanH *ActivationFunction = &ActivationFunction{
 	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
-		return func(v float64, _, _ int, _ []float64) float64 {
+		return func(v float64, _ int, _ []float64) float64 {
 			return math.Tanh(v)
 		}
 	},
 	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
-		return func(v float64, _, _ int, _ []float64) float64 {
+		return func(v float64, _ int, _ []float64) float64 {
 			return 1 - math.Pow(math.Tanh(v), 2)
 		}
 	},
@@ -61,12 +61,12 @@ var TanH *ActivationFunction = &ActivationFunction{
 // ReLU ...
 var ReLU *ActivationFunction = &ActivationFunction{
 	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
-		return func(v float64, _, _ int, _ []float64) float64 {
+		return func(v float64, _ int, _ []float64) float64 {
 			return math.Max(0, v)
 		}
 	},
 	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
-		return func(v float64, _, _ int, _ []float64) float64 {
+		return func(v float64, _ int, _ []float64) float64 {
 			if v >= 0 {
 				return 1
 			} else {
@@ -79,7 +79,7 @@ var ReLU *ActivationFunction = &ActivationFunction{
 // LeakyReLU ...
 var LeakyReLU *ActivationFunction = &ActivationFunction{
 	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
-		return func(v float64, _, _ int, _ []float64) float64 {
+		return func(v float64, _ int, _ []float64) float64 {
 			if v >= 0 {
 				return v
 			} else {
@@ -88,7 +88,7 @@ var LeakyReLU *ActivationFunction = &ActivationFunction{
 		}
 	},
 	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
-		return func(v float64, _, _ int, _ []float64) float64 {
+		return func(v float64, _ int, _ []float64) float64 {
 			if v >= 0 {
 				return 1
 			} else {
@@ -104,7 +104,7 @@ var Softmax *ActivationFunction = &ActivationFunction{
 		sum := calculateApplySum(m.Values, func(v float64) float64 {
 			return math.Exp(v)
 		})
-		return func(v float64, _, _ int, _ []float64) float64 {
+		return func(v float64, _ int, _ []float64) float64 {
 			return math.Exp(v) / sum
 		}
 	},
@@ -112,9 +112,16 @@ var Softmax *ActivationFunction = &ActivationFunction{
 		sum := calculateApplySum(m.Values, func(v float64) float64 {
 			return math.Exp(v)
 		})
-		return func(v float64, _, _ int, _ []float64) float64 {
-			v = (math.Exp(v) / sum)
-			return v * (1 - v)
+		var vF float64
+		return func(v float64, idx int, _ []float64) float64 {
+			v = math.Exp(v) / sum
+			if idx == 0 {
+				vF = v
+				p := v * (1 - v)
+				return p
+			} else {
+				return -vF * v
+			}
 		}
 	},
 }
@@ -122,12 +129,12 @@ var Softmax *ActivationFunction = &ActivationFunction{
 // StableSoftmax ...
 var StableSoftmax *ActivationFunction = &ActivationFunction{
 	aFn: func(m *matrix.Matrix) matrix.ApplyFn {
-		max := -calculateMax(m.Values)
+		max := calculateMax(m.Values)
 		sum := calculateApplySum(m.Values, func(v float64) float64 {
-			return math.Exp(v + max)
+			return math.Exp(v - max)
 		})
-		return func(v float64, _, _ int, _ []float64) float64 {
-			return math.Exp(v+max) / sum
+		return func(v float64, _ int, _ []float64) float64 {
+			return math.Exp(v-max) / sum
 		}
 	},
 	dFn: func(m *matrix.Matrix) matrix.ApplyFn {
@@ -135,9 +142,17 @@ var StableSoftmax *ActivationFunction = &ActivationFunction{
 		sum := calculateApplySum(m.Values, func(v float64) float64 {
 			return math.Exp(v + max)
 		})
-		return func(v float64, _, _ int, _ []float64) float64 {
+		var vF float64
+		return func(v float64, idx int, _ []float64) float64 {
 			v = math.Exp(v+max) / sum
-			return v * (1 - v)
+			v = v / sum
+			if idx == 0 {
+				vF = v
+				p := v * (1 - v)
+				return p
+			} else {
+				return -vF * v
+			}
 		}
 	},
 }

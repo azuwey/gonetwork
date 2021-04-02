@@ -59,7 +59,7 @@ func New(model *Model, r *rand.Rand) (*Network, error) {
 	}
 
 	lyrs := make([]*Layer, len(model.Layers)-1)
-	rnd := func(v float64, _, _ int, _ []float64) float64 {
+	rnd := func(v float64, _ int, _ []float64) float64 {
 		return r.Float64()*2 - 1
 	}
 
