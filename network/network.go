@@ -72,7 +72,6 @@ func New(model *Model, r *rand.Rand) (*Network, error) {
 		b, _ := matrix.New(lyr.Nodes, 1, lyr.Weights)
 
 		w.Apply(rnd, w)
-		b.Apply(rnd, b)
 
 		aFn, ok := ActivationFunctions[lyr.ActivationFunction]
 		if !ok {

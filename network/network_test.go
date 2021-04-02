@@ -133,7 +133,7 @@ func TestCalculateLayerValues(t *testing.T) {
 		expectedValues [][]float64
 		expectedError  error
 	}{
-		{"Normal", []float64{0.5}, [][]float64{{0.500000}, {0.483787}, {0.322914}}, nil},
+		{"Normal", []float64{0.5}, [][]float64{{0.500000}, {0.609496}, {0.422899}}, nil},
 		{"matrix.ErrZeroRow", []float64{}, [][]float64{}, matrix.ErrZeroRow},
 		{"matrix.ErrZeroRow", nil, [][]float64{}, matrix.ErrZeroRow},
 	}
@@ -184,7 +184,7 @@ func TestPredict(t *testing.T) {
 		inputs, targets []float64
 		expectedError   error
 	}{
-		{"Normal", []float64{0.5}, []float64{0.322914}, nil},
+		{"Normal", []float64{0.5}, []float64{0.422899}, nil},
 		{"ErrNilInputSlice", nil, []float64{}, ErrNilInputSlice},
 		{"matrix.ErrZeroRow", []float64{}, []float64{}, matrix.ErrZeroRow},
 	}
@@ -236,7 +236,7 @@ func TestTrain(t *testing.T) {
 			"Normal", []dataSet{
 				{[]float64{1, 0}, []float64{0}},
 			}, []dataSet{
-				{[]float64{1, 0}, []float64{0.590543}},
+				{[]float64{1, 0}, []float64{0.368471}},
 			}, &Model{0.1, []LayerDescriptor{
 				{2, "", nil, nil},
 				{2, "LogisticSigmoid", nil, nil},
@@ -325,8 +325,7 @@ func TestTrain(t *testing.T) {
 	}
 }
 
-/*func TestTrain_long(t *testing.T) {
-	// TODO: move this to an example
+func TestTrain_dataset(t *testing.T) {
 	type dataSet struct{ inputs, targets []float64 }
 	testCases := []struct {
 		name                   string
@@ -336,7 +335,7 @@ func TestTrain(t *testing.T) {
 		expectedError          error
 	}{
 		{
-			"XOR", 30000, []dataSet{
+			"XOR", 700, []dataSet{
 				{[]float64{0, 0}, []float64{0}},
 				{[]float64{0, 1}, []float64{1}},
 				{[]float64{1, 0}, []float64{1}},
@@ -348,12 +347,12 @@ func TestTrain(t *testing.T) {
 				{[]float64{1, 1}, []float64{0}},
 			}, &Model{0.1, []LayerDescriptor{
 				{2, "", nil, nil},
-				{2, "TanH", nil, nil},
+				{4, "TanH", nil, nil},
 				{1, "LogisticSigmoid", nil, nil},
 			}}, nil,
 		},
 		{
-			"4-bit counter", 30000, []dataSet{
+			"4-bit counter", 500, []dataSet{
 				{[]float64{0, 0, 0, 0}, []float64{0, 0, 0, 1}},
 				{[]float64{0, 0, 0, 1}, []float64{0, 0, 1, 0}},
 				{[]float64{0, 0, 1, 0}, []float64{0, 0, 1, 1}},
@@ -410,11 +409,11 @@ func TestTrain(t *testing.T) {
 			for _, td := range tc.testData {
 				predictions, _ := n.Predict(td.inputs)
 				for idx, p := range predictions {
-					if !isFloatInThreshold(p, td.targets[idx]) {
+					if !isFloatInThreshold(p, td.targets[idx], 0.1) {
 						t.Errorf("Expected prediction is %f, but got %f", td.targets[idx], p)
 					}
 				}
 			}
 		})
 	}
-}*/
+}
