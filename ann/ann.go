@@ -1,4 +1,4 @@
-package network
+package ann
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 	"github.com/azuwey/gonetwork/matrix"
 )
 
-// LayerDescriptor used to generate the layers in the network.
+// LayerDescriptor used to generate the layers in the fully connected neural network.
 type LayerDescriptor struct {
 	Nodes              int       `json:"nodes"`
 	ActivationFunction string    `json:"activationFunction"`
@@ -15,37 +15,38 @@ type LayerDescriptor struct {
 	Biases             []float64 `json:"biases"`
 }
 
+// Model used to generate a fully connected neural network.
 type Model struct {
 	LearningRate float64           `json:"learningRate"`
 	Layers       []LayerDescriptor `json:"layers"`
 }
 
-// Layer represents a layer in the network
+// Layer represents a layer in the fully connected neural network.
 type Layer struct {
 	weights            *matrix.Matrix
 	biases             *matrix.Matrix
 	activationFunction *ActivationFunction
 }
 
-// Network represents the structure of a neural network.
-type Network struct {
+// ANN represents the structure of a fully connected neural network.
+type ANN struct {
 	learningRate float64
 	layers       []*Layer
 	rand         *rand.Rand
 }
 
-// layerValues is used by calculateLayerValues to return both activated and unactivated values
+// layerValues is used by calculateLayerValues to return both activated and unactivated values.
 type layerValues struct {
 	activated   *matrix.Matrix
 	unactivated *matrix.Matrix
 }
 
-// New creates a new neural network with "ls" layer structure,
+// New creates a new fully connected neural network with "ls" layer structure,
 // the first element in the "ls" represents the input layer,
 // the last element in the "ls" represents the output layer.
 // It will return an error if "ls == nil || len(ls) < 3", "lr <= 0 || lr > 1", "r == nil".
 // It will also return an error if any of the layers activationFunction is nill except for the input layer.
-func New(model *Model, r *rand.Rand) (*Network, error) {
+func New(model *Model, r *rand.Rand) (*ANN, error) {
 	if model.Layers == nil || len(model.Layers) < 3 {
 		return nil, ErrLayerStructureLength
 	}
@@ -81,12 +82,12 @@ func New(model *Model, r *rand.Rand) (*Network, error) {
 		lyrs[idx] = &Layer{w, b, aFn}
 	}
 
-	n := &Network{model.LearningRate, lyrs, r}
+	n := &ANN{model.LearningRate, lyrs, r}
 
 	return n, nil
 }
 
-func (n *Network) calculateLayerValues(i []float64) ([]*layerValues, error) {
+func (n *ANN) calculateLayerValues(i []float64) ([]*layerValues, error) {
 	iMat, err := matrix.New(len(i), 1, i)
 	if !errors.Is(err, nil) {
 		return nil, err
@@ -111,7 +112,7 @@ func (n *Network) calculateLayerValues(i []float64) ([]*layerValues, error) {
 }
 
 // Predict ...
-func (n *Network) Predict(i []float64) ([]float64, error) {
+func (n *ANN) Predict(i []float64) ([]float64, error) {
 	if i == nil {
 		return nil, ErrNilInputSlice
 	}
@@ -125,7 +126,7 @@ func (n *Network) Predict(i []float64) ([]float64, error) {
 }
 
 // Train ...
-func (n *Network) Train(i, t []float64) error {
+func (n *ANN) Train(i, t []float64) error {
 	if i == nil {
 		return ErrNilInputSlice
 	}

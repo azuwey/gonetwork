@@ -1,10 +1,10 @@
-package network_test
+package ann_test
 
 import (
 	"fmt"
 	"math/rand"
 
-	"github.com/azuwey/gonetwork/network"
+	network "github.com/azuwey/gonetwork/ann"
 )
 
 func ExampleNew() {
