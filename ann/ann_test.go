@@ -5,6 +5,7 @@ import (
 	"math/rand"
 	"testing"
 
+	"github.com/azuwey/gonetwork/activationfn"
 	"github.com/azuwey/gonetwork/matrix"
 )
 
@@ -85,7 +86,7 @@ func TestNew(t *testing.T) {
 				}
 
 				for idx, l := range n.layers {
-					if l.activationFunction != ActivationFunctions[tc.model.Layers[idx+1].ActivationFunction] {
+					if l.activationFunction != activationfn.ActivationFunctions[tc.model.Layers[idx+1].ActivationFunction] {
 						t.Errorf("Expected activation function is %v, but got %v", tc.model.Layers[idx+1].ActivationFunction, l.activationFunction)
 					}
 

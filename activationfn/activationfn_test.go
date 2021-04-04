@@ -1,10 +1,19 @@
-package ann
+package activationfn
 
 import (
+	"math"
 	"testing"
 
 	"github.com/azuwey/gonetwork/matrix"
 )
+
+func isFloatInThreshold(v float64, t float64, th float64) bool {
+	if math.Abs(v-t) <= th {
+		return true
+	} else {
+		return false
+	}
+}
 
 func TestActivationFunction_activate(t *testing.T) {
 	testCases := []struct {
@@ -26,7 +35,7 @@ func TestActivationFunction_activate(t *testing.T) {
 			t.Parallel()
 
 			m, _ := matrix.New(len(tc.inputs), 1, tc.inputs)
-			aFn := tc.activationFunction.aFn(m)
+			aFn := tc.activationFunction.ActivationFn(m)
 
 			m.Apply(aFn, m)
 			for idx, out := range tc.exceptedActivatedOutputs {
@@ -36,7 +45,7 @@ func TestActivationFunction_activate(t *testing.T) {
 			}
 
 			m, _ = matrix.New(len(tc.inputs), 1, tc.inputs)
-			dFn := tc.activationFunction.dFn(m)
+			dFn := tc.activationFunction.DeactivationFn(m)
 			m.Apply(dFn, m)
 			for idx, out := range tc.exceptedDeactivatedOutputs {
 				if !isFloatInThreshold(m.Values[idx], out, 0.00001) {

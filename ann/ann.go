@@ -4,10 +4,11 @@ import (
 	"errors"
 	"math/rand"
 
+	"github.com/azuwey/gonetwork/activationfn"
 	"github.com/azuwey/gonetwork/matrix"
 )
 
-// LayerDescriptor used to generate the layers in the fully connected neural network.
+// LayerDescriptor used to generate the layers in the artificial neural network.
 type LayerDescriptor struct {
 	Nodes              int       `json:"nodes"`
 	ActivationFunction string    `json:"activationFunction"`
@@ -15,20 +16,20 @@ type LayerDescriptor struct {
 	Biases             []float64 `json:"biases"`
 }
 
-// Model used to generate a fully connected neural network.
+// Model used to generate a artificial neural network.
 type Model struct {
 	LearningRate float64           `json:"learningRate"`
 	Layers       []LayerDescriptor `json:"layers"`
 }
 
-// Layer represents a layer in the fully connected neural network.
+// Layer represents a layer in the artificial neural network.
 type Layer struct {
 	weights            *matrix.Matrix
 	biases             *matrix.Matrix
-	activationFunction *ActivationFunction
+	activationFunction *activationfn.ActivationFunction
 }
 
-// ANN represents the structure of a fully connected neural network.
+// ANN represents the structure of a artificial neural network.
 type ANN struct {
 	learningRate float64
 	layers       []*Layer
@@ -41,7 +42,7 @@ type layerValues struct {
 	unactivated *matrix.Matrix
 }
 
-// New creates a new fully connected neural network with "ls" layer structure,
+// New creates a new artificial neural network with "ls" layer structure,
 // the first element in the "ls" represents the input layer,
 // the last element in the "ls" represents the output layer.
 // It will return an error if "ls == nil || len(ls) < 3", "lr <= 0 || lr > 1", "r == nil".
@@ -74,7 +75,7 @@ func New(model *Model, r *rand.Rand) (*ANN, error) {
 
 		w.Apply(rnd, w)
 
-		aFn, ok := ActivationFunctions[lyr.ActivationFunction]
+		aFn, ok := activationfn.ActivationFunctions[lyr.ActivationFunction]
 		if !ok {
 			return nil, ErrActivationFnNotExist
 		}
@@ -103,7 +104,7 @@ func (n *ANN) calculateLayerValues(i []float64) ([]*layerValues, error) {
 		uV.Add(n.layers[idx].biases, uV)
 
 		aV, _ := matrix.Copy(uV)
-		aV.Apply(n.layers[idx].activationFunction.aFn(aV), aV)
+		aV.Apply(n.layers[idx].activationFunction.ActivationFn(aV), aV)
 
 		vals[idx+1] = &layerValues{aV, uV}
 	}
@@ -161,7 +162,7 @@ func (n *ANN) Train(i, t []float64) error {
 		lastErrVal = e
 
 		g := &matrix.Matrix{}
-		g.Apply(n.layers[idx].activationFunction.dFn(lVals[idx+1].unactivated), lVals[idx+1].unactivated)
+		g.Apply(n.layers[idx].activationFunction.DeactivationFn(lVals[idx+1].unactivated), lVals[idx+1].unactivated)
 		g.Multiply(e, g)
 
 		d := &matrix.Matrix{}

@@ -1,4 +1,4 @@
-package ann
+package activationfn
 
 import (
 	"math"
@@ -8,7 +8,7 @@ import (
 
 // ActivationFunction is an alias for the type of the activation functions
 type ActivationFunction struct {
-	aFn, dFn func(*matrix.Matrix) matrix.ApplyFn
+	ActivationFn, DeactivationFn func(*matrix.Matrix) matrix.ApplyFn
 }
 
 func calculateApplySum(s []float64, aFn func(float64) float64) float64 {
@@ -31,12 +31,12 @@ func calculateMax(s []float64) float64 {
 
 // LogisticSigmoid ...
 var LogisticSigmoid *ActivationFunction = &ActivationFunction{
-	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+	ActivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			return 1 / (1 + math.Exp(-v))
 		}
 	},
-	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+	DeactivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			v = (1 / (1 + math.Exp(-v)))
 			return v * (1 - v)
@@ -46,12 +46,12 @@ var LogisticSigmoid *ActivationFunction = &ActivationFunction{
 
 // TanH ...
 var TanH *ActivationFunction = &ActivationFunction{
-	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+	ActivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			return math.Tanh(v)
 		}
 	},
-	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+	DeactivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			return 1 - math.Pow(math.Tanh(v), 2)
 		}
@@ -60,12 +60,12 @@ var TanH *ActivationFunction = &ActivationFunction{
 
 // ReLU ...
 var ReLU *ActivationFunction = &ActivationFunction{
-	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+	ActivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			return math.Max(0, v)
 		}
 	},
-	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+	DeactivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			if v >= 0 {
 				return 1
@@ -78,7 +78,7 @@ var ReLU *ActivationFunction = &ActivationFunction{
 
 // LeakyReLU ...
 var LeakyReLU *ActivationFunction = &ActivationFunction{
-	aFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+	ActivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			if v >= 0 {
 				return v
@@ -87,7 +87,7 @@ var LeakyReLU *ActivationFunction = &ActivationFunction{
 			}
 		}
 	},
-	dFn: func(_ *matrix.Matrix) matrix.ApplyFn {
+	DeactivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			if v >= 0 {
 				return 1
@@ -100,7 +100,7 @@ var LeakyReLU *ActivationFunction = &ActivationFunction{
 
 // Softmax ...
 var Softmax *ActivationFunction = &ActivationFunction{
-	aFn: func(m *matrix.Matrix) matrix.ApplyFn {
+	ActivationFn: func(m *matrix.Matrix) matrix.ApplyFn {
 		sum := calculateApplySum(m.Values, func(v float64) float64 {
 			return math.Exp(v)
 		})
@@ -108,7 +108,7 @@ var Softmax *ActivationFunction = &ActivationFunction{
 			return math.Exp(v) / sum
 		}
 	},
-	dFn: func(m *matrix.Matrix) matrix.ApplyFn {
+	DeactivationFn: func(m *matrix.Matrix) matrix.ApplyFn {
 		sum := calculateApplySum(m.Values, func(v float64) float64 {
 			return math.Exp(v)
 		})
@@ -128,7 +128,7 @@ var Softmax *ActivationFunction = &ActivationFunction{
 
 // StableSoftmax ...
 var StableSoftmax *ActivationFunction = &ActivationFunction{
-	aFn: func(m *matrix.Matrix) matrix.ApplyFn {
+	ActivationFn: func(m *matrix.Matrix) matrix.ApplyFn {
 		max := calculateMax(m.Values)
 		sum := calculateApplySum(m.Values, func(v float64) float64 {
 			return math.Exp(v - max)
@@ -137,7 +137,7 @@ var StableSoftmax *ActivationFunction = &ActivationFunction{
 			return math.Exp(v-max) / sum
 		}
 	},
-	dFn: func(m *matrix.Matrix) matrix.ApplyFn {
+	DeactivationFn: func(m *matrix.Matrix) matrix.ApplyFn {
 		max := -calculateMax(m.Values)
 		sum := calculateApplySum(m.Values, func(v float64) float64 {
 			return math.Exp(v + max)
