@@ -86,7 +86,7 @@ func NewArtificialLayer(d ArtificialLayerDescriptor, r *rand.Rand) (*artificialL
 	if d.UUID == "" {
 		d.UUID = common.GenerateUUID(10, r)
 	}
-	layer := layer{d.UUID, d.InputShape, d.OutputShape, nil, nil, d.LearningRate, &matrix.Matrix{}, &matrix.Matrix{}}
+	layer := layer{d.UUID, d.InputShape, d.OutputShape, nil, nil, d.LearningRate, &matrix.Matrix{}, &matrix.Matrix{}, nil}
 	return &artificialLayer{layer, aFn, w, b}, nil
 }
 
@@ -99,8 +99,10 @@ func (l *artificialLayer) Forwardprop(input *matrix.Matrix) ([]float64, error) {
 		return nil, ErrBadInputShape
 	}
 
+	l.input, _ = matrix.Copy(input)
+
 	l.deactivated, _ = matrix.Copy(input)
-	l.deactivated.Product(l.weights, l.deactivated)
+	l.deactivated.Product(l.weights, l.input)
 	l.deactivated.Add(l.biases, l.deactivated)
 
 	l.activated, _ = matrix.Copy(l.deactivated)
@@ -142,8 +144,7 @@ func (l *artificialLayer) Backprop(target *matrix.Matrix) error {
 	}
 
 	d := &matrix.Matrix{}
-	// Need previous layer value
-	if err := d.Transpose(l.activated); err != nil {
+	if err := d.Transpose(l.input); err != nil {
 		return err
 	}
 	if err := d.Product(g, d); err != nil {

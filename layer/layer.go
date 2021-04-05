@@ -79,6 +79,6 @@ type layer struct {
 	OutputShape    Shape
 	Previous, Next Layer
 
-	learningRate           *float64
-	activated, deactivated *matrix.Matrix
+	learningRate                  *float64
+	input, activated, deactivated *matrix.Matrix
 }

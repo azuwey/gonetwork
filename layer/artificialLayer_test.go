@@ -193,7 +193,7 @@ func TestForwardpropArtificialLayer(t *testing.T) {
 			} else {
 				for idx, ep := range tc.expectedPrediction {
 					if math.Abs(prediction[idx]-ep) > 0.00001 {
-						t.Errorf("expected prediction[%d] is %f +-0.00001, but got %f", idx, ep, prediction[idx])
+						t.Errorf("expected prediction[%d] is %f+-0.00001, but got %f", idx, ep, prediction[idx])
 					}
 				}
 			}
@@ -209,24 +209,30 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 		layers          []ArtificialLayerDescriptor
 		input, target   *matrix.Matrix
 		expectedWeights [][]float64
+		expectedBiases  [][]float64
 		expectedError   error
 	}{
-		/*{"Single layer already optimized", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
+		{"Single layer already optimized", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
 			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}},
 			&matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1},
 			&matrix.Matrix{Values: []float64{0.16, 0.37, 0.58, 0.79}, Rows: 4, Columns: 1}, [][]float64{
 				{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+			}, [][]float64{
+				{0.01, 0.02, 0.03, 0.04},
 			}, nil,
-		},*/
+		},
+		/* This needs to be validated */
 		{"Single layer not optimized", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
 			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}},
 			&matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1},
 			&matrix.Matrix{Values: []float64{0.1, 0.7, 0.2, 0.9}, Rows: 4, Columns: 1}, [][]float64{
-				{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+				{0.097, 0.197, 0.3165, 0.4165, 0.481, 0.581, 0.7055, 0.8055},
+			}, [][]float64{
+				{-0.05, 0.35, -0.35, 0.15},
 			}, nil,
 		},
 		/*{"Dual layer", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
@@ -298,7 +304,14 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 					wvs := layers[d.UUID].weights.Values
 					for wIdx, wv := range wvs {
 						if math.Abs(wv-tc.expectedWeights[idx][wIdx]) > 0.00001 {
-							t.Errorf("expected weights[%d][%d] is %f +-0.00001, but got %f", idx, wIdx, tc.expectedWeights[idx][wIdx], wv)
+							t.Errorf("expected weights[%d][%d] is %f+-0.00001, but got %f", idx, wIdx, tc.expectedWeights[idx][wIdx], wv)
+						}
+					}
+
+					bvs := layers[d.UUID].biases.Values
+					for bIdx, bv := range bvs {
+						if math.Abs(bv-tc.expectedBiases[idx][bIdx]) > 0.00001 {
+							t.Errorf("expected biases[%d][%d] is %f+-0.00001, but got %f", idx, bIdx, tc.expectedBiases[idx][bIdx], bv)
 						}
 					}
 				}
