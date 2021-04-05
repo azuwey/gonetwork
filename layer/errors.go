@@ -19,3 +19,21 @@ var ErrOutOfRangeColumn = errors.New("layer: the number of columns is out of ran
 
 // ErrOutOfRangeDepth is returned by New when the number of columns is out of range.
 var ErrOutOfRangeDepth = errors.New("layer: the number of columns is out of range")
+
+// ErrBadWeightsDimension is returned by New when the dimension of weights does not match the provided shape.
+var ErrBadWeightsDimension = errors.New("layer: the dimension of weights does not match the provided shape")
+
+// ErrBadBiasesDimension is returned by New when the dimension of biases does not match the provided shape.
+var ErrBadBiasesDimension = errors.New("layer: the dimension of biases does not match the provided shape")
+
+// ErrNotExistActivationFn is returned by New when the provided activation function does not exists.
+var ErrNotExistActivationFn = errors.New("layer: the provided activation function does not exists")
+
+// ErrNilRand is returned by New when the r is nil.
+var ErrNilRand = errors.New("layer: the rand cannot be nil")
+
+// ErrNilInput is returned by Forwardprop when the input matrix is nil.
+var ErrNilInput = errors.New("layer: the input matrix cannot be nil")
+
+// ErrBadInputShape is returned by Forwardprop when the input matrix shape does not match the input shape
+var ErrBadInputShape = errors.New("layer: the provided input matrix does not match the input shape")

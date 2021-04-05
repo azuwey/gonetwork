@@ -1,7 +1,6 @@
 package layer
 
 import (
-	"github.com/azuwey/gonetwork/activationfn"
 	"github.com/azuwey/gonetwork/matrix"
 )
 
@@ -57,27 +56,29 @@ type Shape struct {
 }
 
 type LayerDescriptor struct {
-	ActivationFn   string      `json:"activationFn"`
-	InputShape     Shape       `json:"inputShape"`
-	OutputShape    Shape       `json:"outputShape"`
-	Weights        [][]float64 `json:"weights"`
-	Biases         [][]float64 `json:"biases"`
-	LearningRate   *float64
-	Next, Previous Layer
+	UUID              string `json:"uuid"`
+	NextLayerUUID     string `json:"nextLayerUUID"`
+	PreviousLayerUUID string `json:"previousLayerUUID"`
+	InputShape        Shape  `json:"inputShape"`
+	OutputShape       Shape  `json:"outputShape"`
+
+	LearningRate *float64
 }
 
 type Layer interface {
 	// Forwardprop performs forwardpropagation for the current layer
-	Forwardprop(*matrix.Matrix) error
+	Forwardprop(*matrix.Matrix) ([]float64, error)
 
 	// Backprop performs backpropagation for the current layer
 	Backprop(target *matrix.Matrix) error
 }
 
 type layer struct {
-	activationFn           *activationfn.ActivationFunction
+	UUID           string
+	InputShape     Shape
+	OutputShape    Shape
+	Previous, Next Layer
+
 	learningRate           *float64
-	weights, biases        []*matrix.Matrix
-	activated, unactivated *matrix.Matrix
-	previous, next         Layer
+	activated, deactivated *matrix.Matrix
 }
