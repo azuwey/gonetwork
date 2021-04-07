@@ -111,20 +111,18 @@ func (l *artificialLayer) Forwardprop(input *matrix.Matrix) ([]float64, error) {
 	if l.Next == nil {
 		return l.activated.Values, nil
 	} else {
-		/* i, _ := matrix.Copy(l.activated)
-		i.Transpose(i) */
 		return l.Next.Forwardprop(l.activated)
 	}
 }
 
 func (l *artificialLayer) Backprop(target *matrix.Matrix) error {
 	if target == nil {
-		return nil // TODO: error
+		return ErrNilTarget
 	}
 
-	/* if target.Rows != l.OutputShape.Rows || target.Columns != l.OutputShape.Columns || len(target.Values) != l.OutputShape.Rows*l.OutputShape.Columns {
-		return nil // TODO: error
-	} */
+	if target.Rows != l.OutputShape.Rows || target.Columns != l.OutputShape.Columns || len(target.Values) != l.OutputShape.Rows*l.OutputShape.Columns {
+		return ErrBadTargetShape
+	}
 
 	e := &matrix.Matrix{}
 
@@ -136,30 +134,16 @@ func (l *artificialLayer) Backprop(target *matrix.Matrix) error {
 	}
 
 	g := &matrix.Matrix{}
-	if err := g.Apply(l.activationFn.DeactivationFn(l.deactivated), l.deactivated); err != nil {
-		return err
-	}
-	if err := g.Multiply(e, g); err != nil {
-		return err
-	}
+	g.Apply(l.activationFn.DeactivationFn(l.deactivated), l.deactivated)
+	g.Multiply(e, g)
 
 	d := &matrix.Matrix{}
-	if err := d.Transpose(l.input); err != nil {
-		return err
-	}
-	if err := d.Product(g, d); err != nil {
-		return err
-	}
-	if err := d.Scale(*l.learningRate, d); err != nil {
-		return err
-	}
+	d.Transpose(l.input)
+	d.Product(g, d)
+	d.Scale(*l.learningRate, d)
 
-	if err := l.weights.Add(l.weights, d); err != nil {
-		return err
-	}
-	if err := l.biases.Add(l.biases, g); err != nil {
-		return err
-	}
+	l.weights.Add(l.weights, d)
+	l.biases.Add(l.biases, g)
 
 	if l.Previous == nil {
 		return nil

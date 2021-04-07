@@ -223,7 +223,6 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 				{0.01, 0.02, 0.03, 0.04},
 			}, nil,
 		},
-		/* This needs to be validated */
 		{"Single layer not optimized", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
 			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
@@ -235,33 +234,38 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 				{-0.05, 0.35, -0.35, 0.15},
 			}, nil,
 		},
-		/*{"Dual layer", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
+		{"Dual layer not optimized", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
 			{LayerDescriptor{"mdN6RA0rI0", "mdN6RA0rI1", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
-			}, {LayerDescriptor{"mdN6RA0rI1", "", "mdN6RA0rI0", Shape{4, 1, 1}, Shape{1, 1, 1}, &learningRate}, "ReLU",
-				[]float64{0.1, 0.2, 0.3, 0.4}, []float64{0.01},
-			}}, &matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1}, []float64{0.59}, nil,
+			}, {LayerDescriptor{"mdN6RA0rI1", "", "mdN6RA0rI0", Shape{4, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
+			}},
+			&matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1},
+			&matrix.Matrix{Values: []float64{0.1, 0.7, 0.2, 0.9}, Rows: 4, Columns: 1}, [][]float64{
+				{0.15, 0.25, 0.35, 0.45, 0.55, 0.65, 0.75, 0.85},
+				{0.09216, 0.18187, 0.27158, 0.36129, 0.48944, 0.57558, 0.66172, 0.74786, 0.09344, 0.18483, 0.27622, 0.36761, 0.49232, 0.58224, 0.67216, 0.76208},
+			}, [][]float64{
+				{1.01, 1.02, 1.03, 1.04},
+				{-0.48, -0.64, -0.38, -0.44},
+			}, nil,
 		},
-		{"ErrNilInput", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
+		{"ErrNilTarget", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
 			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
-			}}, nil, []float64{0.16, 0.37, 0.58, 0.79}, ErrNilInput,
+			}},
+			&matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1}, nil, [][]float64{
+				{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+			}, nil, ErrNilTarget,
 		},
-		{"ErrBadInputShape empty input values", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
+		{"ErrBadTargetShape", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
 			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
-			}}, &matrix.Matrix{Values: []float64{}, Rows: 2, Columns: 1}, []float64{0.16, 0.37, 0.58, 0.79}, ErrBadInputShape,
+			}},
+			&matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1},
+			&matrix.Matrix{Values: []float64{0.16, 0.37, 0.58}, Rows: 3, Columns: 1}, [][]float64{
+				{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8},
+			}, nil, ErrBadTargetShape,
 		},
-		{"ErrBadInputShape bad number of rows", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
-				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
-			}}, &matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 1, Columns: 1}, []float64{0.16, 0.37, 0.58, 0.79}, ErrBadInputShape,
-		},
-		{"ErrBadInputShape bad number of columns", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
-				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
-			}}, &matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 2}, []float64{0.16, 0.37, 0.58, 0.79}, ErrBadInputShape,
-		},*/
 	}
 
 	for _, tc := range testCases {
@@ -275,11 +279,13 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 				layers[d.UUID], _ = NewArtificialLayer(d, tc.rand)
 			}
 
-			var ll *artificialLayer
+			var ll, fl *artificialLayer
 			for _, d := range tc.layers {
 				l := layers[d.UUID]
 				if d.PreviousLayerUUID != "" {
 					l.Previous = layers[d.PreviousLayerUUID]
+				} else {
+					fl = l
 				}
 
 				if d.NextLayerUUID != "" {
@@ -291,7 +297,7 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 				layers[d.UUID] = l
 			}
 
-			ll.Forwardprop(tc.input)
+			fl.Forwardprop(tc.input)
 			err := ll.Backprop(tc.target)
 			if tc.expectedError != nil {
 				if err != tc.expectedError {

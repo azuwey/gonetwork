@@ -67,7 +67,7 @@ type LayerDescriptor struct {
 
 type Layer interface {
 	// Forwardprop performs forwardpropagation for the current layer
-	Forwardprop(*matrix.Matrix) ([]float64, error)
+	Forwardprop(input *matrix.Matrix) ([]float64, error)
 
 	// Backprop performs backpropagation for the current layer
 	Backprop(target *matrix.Matrix) error

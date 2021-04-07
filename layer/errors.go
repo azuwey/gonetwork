@@ -37,3 +37,9 @@ var ErrNilInput = errors.New("layer: the input matrix cannot be nil")
 
 // ErrBadInputShape is returned by Forwardprop when the input matrix shape does not match the input shape
 var ErrBadInputShape = errors.New("layer: the provided input matrix does not match the input shape")
+
+// ErrNilTarget is returned by Backprop when the target matrix is nil.
+var ErrNilTarget = errors.New("layer: the target matrix cannot be nil")
+
+// ErrBadTargetShape is returned by Backprop when the target matrix shape does not match the output shape
+var ErrBadTargetShape = errors.New("layer: the provided target matrix does not match the output shape")
