@@ -11,7 +11,7 @@ func BenchmarkLogisticSigmoidActivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	aFn := LogisticSigmoid.ActivationFn(m)
+	aFn := logisticSigmoid.ActivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -23,7 +23,7 @@ func BenchmarkLogisticSigmoidDeactivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	dFn := LogisticSigmoid.DeactivationFn(m)
+	dFn := logisticSigmoid.DeactivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -35,7 +35,7 @@ func BenchmarkTanHActivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	aFn := TanH.ActivationFn(m)
+	aFn := tanH.ActivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -47,7 +47,7 @@ func BenchmarkTanHDeactivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	dFn := TanH.DeactivationFn(m)
+	dFn := tanH.DeactivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -59,7 +59,7 @@ func BenchmarkReLUActivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	aFn := ReLU.ActivationFn(m)
+	aFn := reLU.ActivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -71,7 +71,7 @@ func BenchmarkReLUDeactivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	dFn := ReLU.DeactivationFn(m)
+	dFn := reLU.DeactivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -83,7 +83,7 @@ func BenchmarkLeakyReLUActivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	aFn := LeakyReLU.ActivationFn(m)
+	aFn := leakyReLU.ActivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -95,7 +95,7 @@ func BenchmarkLeakyReLUDeactivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	dFn := LeakyReLU.DeactivationFn(m)
+	dFn := leakyReLU.DeactivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -107,7 +107,7 @@ func BenchmarkSoftmaxActivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	aFn := Softmax.ActivationFn(m)
+	aFn := softmax.ActivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -119,7 +119,7 @@ func BenchmarkSoftmaxDeactivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	dFn := Softmax.DeactivationFn(m)
+	dFn := softmax.DeactivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -131,7 +131,7 @@ func BenchmarkStableSoftmaxActivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	aFn := StableSoftmax.ActivationFn(m)
+	aFn := stableSoftmax.ActivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -143,7 +143,7 @@ func BenchmarkStableSoftmaxDeactivation(b *testing.B) {
 	rnd := rand.New(rand.NewSource(0))
 	inputs := []float64{rnd.Float64(), rnd.Float64()}
 	m, _ := matrix.New(len(inputs), 1, inputs)
-	dFn := StableSoftmax.DeactivationFn(m)
+	dFn := stableSoftmax.DeactivationFn(m)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {

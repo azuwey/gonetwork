@@ -17,16 +17,15 @@ func isFloatInThreshold(v float64, t float64, th float64) bool {
 
 func TestActivationFunction_activate(t *testing.T) {
 	testCases := []struct {
-		name                                                         string
-		activationFunction                                           *ActivationFunction
+		name, activationFunctionName                                 string
 		inputs, exceptedActivatedOutputs, exceptedDeactivatedOutputs []float64
 	}{
-		{"LogisticSigmoid", LogisticSigmoid, []float64{0.5}, []float64{0.62245}, []float64{0.23500}},
-		{"TanH", TanH, []float64{0.5}, []float64{0.46211}, []float64{0.78644}},
-		{"ReLU", ReLU, []float64{0.5, -0.1}, []float64{0.5, 0}, []float64{1, 0}},
-		{"LeakyReLU", LeakyReLU, []float64{0.5, -0.1}, []float64{0.5, -0.001}, []float64{1, 0.01}},
-		{"Softmax", Softmax, []float64{1.43, -0.4, 0.23}, []float64{0.684178, 0.109751, 0.206070}, []float64{0.216078, -0.075090, -0.140989}},
-		{"StableSoftmax", StableSoftmax, []float64{1000, 2000, 3000}, []float64{0, 0, 1}, []float64{0, 0, 0}},
+		{"LogisticSigmoid", "LogisticSigmoid", []float64{0.5}, []float64{0.62245}, []float64{0.23500}},
+		{"TanH", "TanH", []float64{0.5}, []float64{0.46211}, []float64{0.78644}},
+		{"ReLU", "ReLU", []float64{0.5, -0.1}, []float64{0.5, 0}, []float64{1, 0}},
+		{"LeakyReLU", "LeakyReLU", []float64{0.5, -0.1}, []float64{0.5, -0.001}, []float64{1, 0.01}},
+		{"Softmax", "Softmax", []float64{1.43, -0.4, 0.23}, []float64{0.684178, 0.109751, 0.206070}, []float64{0.216078, -0.075090, -0.140989}},
+		{"StableSoftmax", "StableSoftmax", []float64{1000, 2000, 3000}, []float64{0, 0, 1}, []float64{0, 0, 0}},
 	}
 
 	for _, tc := range testCases {
@@ -35,7 +34,7 @@ func TestActivationFunction_activate(t *testing.T) {
 			t.Parallel()
 
 			m, _ := matrix.New(len(tc.inputs), 1, tc.inputs)
-			aFn := tc.activationFunction.ActivationFn(m)
+			aFn := ActivationFunctions[tc.activationFunctionName].ActivationFn(m)
 
 			m.Apply(aFn, m)
 			for idx, out := range tc.exceptedActivatedOutputs {
@@ -45,7 +44,7 @@ func TestActivationFunction_activate(t *testing.T) {
 			}
 
 			m, _ = matrix.New(len(tc.inputs), 1, tc.inputs)
-			dFn := tc.activationFunction.DeactivationFn(m)
+			dFn := ActivationFunctions[tc.activationFunctionName].DeactivationFn(m)
 			m.Apply(dFn, m)
 			for idx, out := range tc.exceptedDeactivatedOutputs {
 				if !isFloatInThreshold(m.Values[idx], out, 0.00001) {

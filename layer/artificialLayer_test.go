@@ -9,59 +9,59 @@ import (
 	"github.com/azuwey/gonetwork/matrix"
 )
 
-func TestNewArtificialLayer(t *testing.T) {
+func TestNew_artificialLayer(t *testing.T) {
 	learningRate := 0.01
 	testCases := []struct {
-		name          string
-		rand          *rand.Rand
-		layer         ArtificialLayerDescriptor
-		expectedUUID  string
-		expectedError error
+		name             string
+		rand             *rand.Rand
+		layerDescription ArtificialLayerDescriptor
+		expectedUUID     string
+		expectedError    error
 	}{
 		{"With UUID", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"mdN6RA0rI3", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
+			LayerDescriptor{"ARTIFICIAL_mdN6RA0rI3", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
 		}, "mdN6RA0rI3", nil},
 		{"Without weights and biases", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
 		}, "mUNERA0rI3", nil},
 		{"With weights, without biases", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", make([]float64, 2*4), nil,
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", make([]float64, 2*4), nil,
 		}, "mUNERA0rI3", nil},
 		{"Without weights, with biases", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, make([]float64, 4),
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, make([]float64, 4),
 		}, "mUNERA0rI3", nil},
 		{"With weights, with biases", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", make([]float64, 2*4), make([]float64, 4),
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", make([]float64, 2*4), make([]float64, 4),
 		}, "mUNERA0rI3", nil},
 		{"ErrZeroRow output", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{0, 1, 1}, &learningRate}, "ReLU", nil, nil,
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{0, 1, 1}, &learningRate}, "ReLU", nil, nil,
 		}, "", ErrZeroRow},
 		{"ErrOutOfRangeColumn output", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{4, 2, 1}, &learningRate}, "ReLU", nil, nil,
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 2, 1}, &learningRate}, "ReLU", nil, nil,
 		}, "", ErrOutOfRangeColumn},
 		{"ErrOutOfRangeDepth output", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{4, 1, 2}, &learningRate}, "ReLU", nil, nil,
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 2}, &learningRate}, "ReLU", nil, nil,
 		}, "", ErrOutOfRangeDepth},
 		{"ErrZeroRow output", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{0, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
+			LayerDescriptor{"", "", Shape{0, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
 		}, "", ErrZeroRow},
 		{"ErrOutOfRangeColumn output", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 2, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
+			LayerDescriptor{"", "", Shape{2, 2, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
 		}, "", ErrOutOfRangeColumn},
 		{"ErrOutOfRangeDepth output", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 2}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
+			LayerDescriptor{"", "", Shape{2, 1, 2}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
 		}, "", ErrOutOfRangeDepth},
 		{"ErrBadWeightsDimension", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", []float64{}, nil,
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", []float64{}, nil,
 		}, "", ErrBadWeightsDimension},
 		{"ErrBadBiasesDimension", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, []float64{},
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, []float64{},
 		}, "", ErrBadBiasesDimension},
 		{"ErrNotExistActivationFn", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "", nil, nil,
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "", nil, nil,
 		}, "", ErrNotExistActivationFn},
 		{"ErrNilRand", nil, ArtificialLayerDescriptor{
-			LayerDescriptor{"", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
+			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
 		}, "", ErrNilRand},
 	}
 
@@ -70,7 +70,7 @@ func TestNewArtificialLayer(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			l, err := NewArtificialLayer(tc.layer, tc.rand)
+			l, err := NewArtificialLayer(tc.layerDescription, tc.rand)
 			if tc.expectedError != nil {
 				if err != tc.expectedError {
 					t.Errorf("expected error is %v, but got %v", tc.expectedError, err)
@@ -80,20 +80,20 @@ func TestNewArtificialLayer(t *testing.T) {
 			} else if l == nil {
 				t.Error("layer should not be nil")
 			} else {
-				if l.activationFn != activationfn.ActivationFunctions[tc.layer.ActivationFn] {
-					t.Errorf("the activation function should be %v, but got %v", *activationfn.ActivationFunctions[tc.layer.ActivationFn], *l.activationFn)
+				if l.activationFn != activationfn.ActivationFunctions[tc.layerDescription.ActivationFn] {
+					t.Errorf("the activation function should be %v, but got %v", *activationfn.ActivationFunctions[tc.layerDescription.ActivationFn], *l.activationFn)
 				}
 
-				if l.learningRate != tc.layer.LearningRate {
-					t.Errorf("expected learning rate is %f, but got %f", *tc.layer.LearningRate, *l.learningRate)
+				if l.learningRate != tc.layerDescription.LearningRate {
+					t.Errorf("expected learning rate is %f, but got %f", *tc.layerDescription.LearningRate, *l.learningRate)
 				}
 
-				if len(l.weights.Values) != tc.layer.OutputShape.Rows*tc.layer.InputShape.Rows {
-					t.Errorf("expected length of weights[0] is %d, but got %d", tc.layer.OutputShape.Rows*tc.layer.InputShape.Rows, len(l.weights.Values))
+				if len(l.weights.Values) != tc.layerDescription.OutputShape.Rows*tc.layerDescription.InputShape.Rows {
+					t.Errorf("expected length of weights[0] is %d, but got %d", tc.layerDescription.OutputShape.Rows*tc.layerDescription.InputShape.Rows, len(l.weights.Values))
 				}
 
-				if len(l.biases.Values) != tc.layer.OutputShape.Rows {
-					t.Errorf("expected length of biases[0] is %d, but got %d", tc.layer.OutputShape.Rows, len(l.biases.Values))
+				if len(l.biases.Values) != tc.layerDescription.OutputShape.Rows {
+					t.Errorf("expected length of biases[0] is %d, but got %d", tc.layerDescription.OutputShape.Rows, len(l.biases.Values))
 				}
 
 				if l.UUID != tc.expectedUUID {
@@ -112,45 +112,45 @@ func TestNewArtificialLayer(t *testing.T) {
 	}
 }
 
-func TestForwardpropArtificialLayer(t *testing.T) {
+func TestForwardprop_artificialLayer(t *testing.T) {
 	learningRate := 0.01
 	testCases := []struct {
 		name               string
 		rand               *rand.Rand
-		layers             []ArtificialLayerDescriptor
+		layerDescriptions  []ArtificialLayerDescriptor
 		input              *matrix.Matrix
 		expectedPrediction []float64
 		expectedError      error
 	}{
 		{"Single layer", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}}, &matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1}, []float64{0.16, 0.37, 0.58, 0.79}, nil,
 		},
 		{"Dual layer", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "mdN6RA0rI1", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "ARTIFICIAL_mdN6RA0rI1", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
-			}, {LayerDescriptor{"mdN6RA0rI1", "", "mdN6RA0rI0", Shape{4, 1, 1}, Shape{1, 1, 1}, &learningRate}, "ReLU",
+			}, {LayerDescriptor{"ARTIFICIAL_mdN6RA0rI1", "", Shape{4, 1, 1}, Shape{1, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4}, []float64{0.01},
 			}}, &matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1}, []float64{0.59}, nil,
 		},
 		{"ErrNilInput", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}}, nil, []float64{0.16, 0.37, 0.58, 0.79}, ErrNilInput,
 		},
 		{"ErrBadInputShape empty input values", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}}, &matrix.Matrix{Values: []float64{}, Rows: 2, Columns: 1}, []float64{0.16, 0.37, 0.58, 0.79}, ErrBadInputShape,
 		},
 		{"ErrBadInputShape bad number of rows", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}}, &matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 1, Columns: 1}, []float64{0.16, 0.37, 0.58, 0.79}, ErrBadInputShape,
 		},
 		{"ErrBadInputShape bad number of columns", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}}, &matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 2}, []float64{0.16, 0.37, 0.58, 0.79}, ErrBadInputShape,
 		},
@@ -163,24 +163,26 @@ func TestForwardpropArtificialLayer(t *testing.T) {
 
 			layers := make(map[string]*artificialLayer)
 
-			for _, d := range tc.layers {
+			for _, d := range tc.layerDescriptions {
 				layers[d.UUID], _ = NewArtificialLayer(d, tc.rand)
 			}
 
-			var fl *artificialLayer
-			for _, d := range tc.layers {
+			for _, d := range tc.layerDescriptions {
 				l := layers[d.UUID]
-				if d.PreviousLayerUUID != "" {
-					l.Previous = layers[d.PreviousLayerUUID]
-				} else {
-					fl = l
-				}
-
 				if d.NextLayerUUID != "" {
 					l.Next = layers[d.NextLayerUUID]
+					layers[d.NextLayerUUID].Previous = l
 				}
 
 				layers[d.UUID] = l
+			}
+
+			var fl *artificialLayer
+			for _, d := range tc.layerDescriptions {
+				l := layers[d.UUID]
+				if l.Previous == nil {
+					fl = l
+				}
 			}
 
 			prediction, err := fl.Forwardprop(tc.input)
@@ -201,19 +203,19 @@ func TestForwardpropArtificialLayer(t *testing.T) {
 	}
 }
 
-func TestBackwardpropArtificialLayer(t *testing.T) {
+func TestBackwardprop_artificialLayer(t *testing.T) {
 	learningRate := 0.1
 	testCases := []struct {
-		name            string
-		rand            *rand.Rand
-		layers          []ArtificialLayerDescriptor
-		input, target   *matrix.Matrix
-		expectedWeights [][]float64
-		expectedBiases  [][]float64
-		expectedError   error
+		name              string
+		rand              *rand.Rand
+		layerDescriptions []ArtificialLayerDescriptor
+		input, target     *matrix.Matrix
+		expectedWeights   [][]float64
+		expectedBiases    [][]float64
+		expectedError     error
 	}{
 		{"Single layer already optimized", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}},
 			&matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1},
@@ -224,7 +226,7 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 			}, nil,
 		},
 		{"Single layer not optimized", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}},
 			&matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1},
@@ -235,9 +237,9 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 			}, nil,
 		},
 		{"Dual layer not optimized", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "mdN6RA0rI1", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "ARTIFICIAL_mdN6RA0rI1", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
-			}, {LayerDescriptor{"mdN6RA0rI1", "", "mdN6RA0rI0", Shape{4, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			}, {LayerDescriptor{"ARTIFICIAL_mdN6RA0rI1", "", Shape{4, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}},
 			&matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1},
@@ -250,7 +252,7 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 			}, nil,
 		},
 		{"ErrNilTarget", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}},
 			&matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1}, nil, [][]float64{
@@ -258,7 +260,7 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 			}, nil, ErrNilTarget,
 		},
 		{"ErrBadTargetShape", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
-			{LayerDescriptor{"mdN6RA0rI0", "", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
 				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
 			}},
 			&matrix.Matrix{Values: []float64{0.5, 0.5}, Rows: 2, Columns: 1},
@@ -275,26 +277,30 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 
 			layers := make(map[string]*artificialLayer)
 
-			for _, d := range tc.layers {
+			for _, d := range tc.layerDescriptions {
 				layers[d.UUID], _ = NewArtificialLayer(d, tc.rand)
 			}
 
-			var ll, fl *artificialLayer
-			for _, d := range tc.layers {
+			var ll *artificialLayer
+			for _, d := range tc.layerDescriptions {
 				l := layers[d.UUID]
-				if d.PreviousLayerUUID != "" {
-					l.Previous = layers[d.PreviousLayerUUID]
-				} else {
-					fl = l
-				}
 
 				if d.NextLayerUUID != "" {
 					l.Next = layers[d.NextLayerUUID]
+					layers[d.NextLayerUUID].Previous = l
 				} else {
 					ll = l
 				}
 
 				layers[d.UUID] = l
+			}
+
+			var fl *artificialLayer
+			for _, d := range tc.layerDescriptions {
+				l := layers[d.UUID]
+				if l.Previous == nil {
+					fl = l
+				}
 			}
 
 			fl.Forwardprop(tc.input)
@@ -306,7 +312,7 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 			} else if err != nil {
 				t.Errorf("expected error is %v, but got %v", nil, err)
 			} else {
-				for idx, d := range tc.layers {
+				for idx, d := range tc.layerDescriptions {
 					wvs := layers[d.UUID].weights.Values
 					for wIdx, wv := range wvs {
 						if math.Abs(wv-tc.expectedWeights[idx][wIdx]) > 0.00001 {
@@ -320,6 +326,156 @@ func TestBackwardpropArtificialLayer(t *testing.T) {
 							t.Errorf("expected biases[%d][%d] is %f+-0.00001, but got %f", idx, bIdx, tc.expectedBiases[idx][bIdx], bv)
 						}
 					}
+				}
+			}
+		})
+	}
+}
+
+func TestGetLayerDescription_artificialLayer(t *testing.T) {
+	learningRate := 0.1
+	testCases := []struct {
+		name              string
+		rand              *rand.Rand
+		layerDescriptions []ArtificialLayerDescriptor
+	}{
+		{"Normal", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "ARTIFICIAL_mdN6RA0rI1", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
+			}, {LayerDescriptor{"ARTIFICIAL_mdN6RA0rI1", "", Shape{4, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
+			}},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			layers := make(map[string]*artificialLayer)
+
+			for _, d := range tc.layerDescriptions {
+				layers[d.UUID], _ = NewArtificialLayer(d, tc.rand)
+			}
+
+			for _, d := range tc.layerDescriptions {
+				l := layers[d.UUID]
+				if d.NextLayerUUID != "" {
+					l.Next = layers[d.NextLayerUUID]
+					layers[d.NextLayerUUID].Previous = l
+				}
+
+				layers[d.UUID] = l
+			}
+
+			for _, d := range tc.layerDescriptions {
+				l := layers[d.UUID]
+				if ld, ok := l.GetLayerDescription().(*ArtificialLayerDescriptor); !ok {
+					t.Errorf("expected layer descriptor should be an ArtificialLayerDescriptor, but got %v", l.GetLayerDescription())
+				} else {
+					if ld.UUID != d.UUID {
+						t.Errorf("expected UUID is %s, but got %s", d.UUID, ld.UUID)
+					}
+
+					if ld.NextLayerUUID != d.NextLayerUUID {
+						t.Errorf("expected next layer UUID is %s, but got %s", d.NextLayerUUID, ld.NextLayerUUID)
+					}
+
+					if ld.InputShape.Rows != d.InputShape.Rows {
+						t.Errorf("expected rows of the input shape is %d, but got %d", d.InputShape.Rows, ld.InputShape.Rows)
+					}
+
+					if ld.InputShape.Columns != d.InputShape.Columns {
+						t.Errorf("expected columns of the input shape is %d, but got %d", d.InputShape.Columns, ld.InputShape.Columns)
+					}
+
+					if ld.InputShape.Depth != d.InputShape.Depth {
+						t.Errorf("expected depth of the input shape is %d, but got %d", d.InputShape.Depth, ld.InputShape.Depth)
+					}
+
+					if ld.OutputShape.Rows != d.OutputShape.Rows {
+						t.Errorf("expected rows of the output shape is %d, but got %d", d.OutputShape.Rows, ld.OutputShape.Rows)
+					}
+
+					if ld.OutputShape.Columns != d.OutputShape.Columns {
+						t.Errorf("expected columns of the output shape is %d, but got %d", d.OutputShape.Columns, ld.OutputShape.Columns)
+					}
+
+					if ld.OutputShape.Depth != d.OutputShape.Depth {
+						t.Errorf("expected depth of the output shape is %d, but got %d", d.OutputShape.Depth, ld.OutputShape.Depth)
+					}
+
+					if ld.ActivationFn != d.ActivationFn {
+						t.Errorf("expected activation function is %s, but got %s", d.ActivationFn, ld.ActivationFn)
+					}
+
+					if len(ld.Weights) != len(d.Weights) {
+						t.Errorf("expected length of the weights is %d, but got %d", len(d.Weights), len(ld.Weights))
+					} else {
+						for idx, w := range ld.Weights {
+							if w != d.Weights[idx] {
+								t.Errorf("expected weight[%d] is %f, but got %f", idx, d.Weights[idx], w)
+							}
+						}
+					}
+
+					if len(ld.Biases) != len(d.Biases) {
+						t.Errorf("expected length of the biases is %d, but got %d", len(d.Biases), len(ld.Biases))
+					} else {
+						for idx, b := range ld.Biases {
+							if b != d.Biases[idx] {
+								t.Errorf("expected weight[%d] is %f, but got %f", idx, d.Biases[idx], b)
+							}
+						}
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestGetUUID_artificialLayer(t *testing.T) {
+	learningRate := 0.1
+	testCases := []struct {
+		name              string
+		rand              *rand.Rand
+		layerDescriptions []ArtificialLayerDescriptor
+	}{
+		{"Normal", rand.New(rand.NewSource(0)), []ArtificialLayerDescriptor{
+			{LayerDescriptor{"ARTIFICIAL_mdN6RA0rI0", "ARTIFICIAL_mdN6RA0rI1", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
+			}, {LayerDescriptor{"ARTIFICIAL_mdN6RA0rI1", "", Shape{4, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU",
+				[]float64{0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8}, []float64{0.01, 0.02, 0.03, 0.04},
+			}},
+		},
+	}
+
+	for _, tc := range testCases {
+		tc := tc
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+
+			layers := make(map[string]*artificialLayer)
+
+			for _, d := range tc.layerDescriptions {
+				layers[d.UUID], _ = NewArtificialLayer(d, tc.rand)
+			}
+
+			for _, d := range tc.layerDescriptions {
+				l := layers[d.UUID]
+				if d.NextLayerUUID != "" {
+					l.Next = layers[d.NextLayerUUID]
+					layers[d.NextLayerUUID].Previous = l
+				}
+
+				layers[d.UUID] = l
+			}
+
+			for _, d := range tc.layerDescriptions {
+				l := layers[d.UUID]
+				if l.GetUUID() != d.UUID {
+					t.Errorf("expected UUID is %s, but got %s", d.UUID, l.GetUUID())
 				}
 			}
 		})

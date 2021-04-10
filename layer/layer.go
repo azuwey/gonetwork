@@ -56,11 +56,10 @@ type Shape struct {
 }
 
 type LayerDescriptor struct {
-	UUID              string `json:"uuid"`
-	NextLayerUUID     string `json:"nextLayerUUID"`
-	PreviousLayerUUID string `json:"previousLayerUUID"`
-	InputShape        Shape  `json:"inputShape"`
-	OutputShape       Shape  `json:"outputShape"`
+	UUID          string `json:"uuid"`
+	NextLayerUUID string `json:"nextLayerUUID"`
+	InputShape    Shape  `json:"inputShape"`
+	OutputShape   Shape  `json:"outputShape"`
 
 	LearningRate *float64
 }
@@ -71,6 +70,12 @@ type Layer interface {
 
 	// Backprop performs backpropagation for the current layer
 	Backprop(target *matrix.Matrix) error
+
+	// GetLayerDescription is return a the layer description in an interface{} format
+	GetLayerDescription() interface{}
+
+	// GetUUID returns the UUID of the layer
+	GetUUID() string
 }
 
 type layer struct {

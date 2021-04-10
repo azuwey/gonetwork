@@ -8,6 +8,7 @@ import (
 
 // ActivationFunction is an alias for the type of the activation functions
 type ActivationFunction struct {
+	Name                         string
 	ActivationFn, DeactivationFn func(*matrix.Matrix) matrix.ApplyFn
 }
 
@@ -30,7 +31,8 @@ func calculateMax(s []float64) float64 {
 }
 
 // LogisticSigmoid ...
-var LogisticSigmoid *ActivationFunction = &ActivationFunction{
+var logisticSigmoid *ActivationFunction = &ActivationFunction{
+	Name: "LogisticSigmoid",
 	ActivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			return 1 / (1 + math.Exp(-v))
@@ -45,7 +47,8 @@ var LogisticSigmoid *ActivationFunction = &ActivationFunction{
 }
 
 // TanH ...
-var TanH *ActivationFunction = &ActivationFunction{
+var tanH *ActivationFunction = &ActivationFunction{
+	Name: "TanH",
 	ActivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			return math.Tanh(v)
@@ -59,7 +62,8 @@ var TanH *ActivationFunction = &ActivationFunction{
 }
 
 // ReLU ...
-var ReLU *ActivationFunction = &ActivationFunction{
+var reLU *ActivationFunction = &ActivationFunction{
+	Name: "ReLU",
 	ActivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			return math.Max(0, v)
@@ -77,7 +81,8 @@ var ReLU *ActivationFunction = &ActivationFunction{
 }
 
 // LeakyReLU ...
-var LeakyReLU *ActivationFunction = &ActivationFunction{
+var leakyReLU *ActivationFunction = &ActivationFunction{
+	Name: "LeakyReLU",
 	ActivationFn: func(_ *matrix.Matrix) matrix.ApplyFn {
 		return func(v float64, _ int, _ []float64) float64 {
 			if v >= 0 {
@@ -99,7 +104,8 @@ var LeakyReLU *ActivationFunction = &ActivationFunction{
 }
 
 // Softmax ...
-var Softmax *ActivationFunction = &ActivationFunction{
+var softmax *ActivationFunction = &ActivationFunction{
+	Name: "Softmax",
 	ActivationFn: func(m *matrix.Matrix) matrix.ApplyFn {
 		sum := calculateApplySum(m.Values, func(v float64) float64 {
 			return math.Exp(v)
@@ -127,7 +133,8 @@ var Softmax *ActivationFunction = &ActivationFunction{
 }
 
 // StableSoftmax ...
-var StableSoftmax *ActivationFunction = &ActivationFunction{
+var stableSoftmax *ActivationFunction = &ActivationFunction{
+	Name: "StableSoftmax",
 	ActivationFn: func(m *matrix.Matrix) matrix.ApplyFn {
 		max := calculateMax(m.Values)
 		sum := calculateApplySum(m.Values, func(v float64) float64 {
@@ -159,10 +166,10 @@ var StableSoftmax *ActivationFunction = &ActivationFunction{
 
 // ActivationFunctions ...
 var ActivationFunctions = map[string]*ActivationFunction{
-	"LogisticSigmoid": LogisticSigmoid,
-	"TanH":            TanH,
-	"ReLU":            ReLU,
-	"LeakyReLU":       LeakyReLU,
-	"Softmax":         Softmax,
-	"StableSoftmax":   StableSoftmax,
+	logisticSigmoid.Name: logisticSigmoid,
+	tanH.Name:            tanH,
+	reLU.Name:            reLU,
+	leakyReLU.Name:       leakyReLU,
+	softmax.Name:         softmax,
+	stableSoftmax.Name:   stableSoftmax,
 }

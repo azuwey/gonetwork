@@ -21,6 +21,12 @@ type artificialLayer struct {
 	weights, biases *matrix.Matrix
 }
 
+// ArtificialLayerUUIDPrefix used to identify the of the layer
+const ArtificialLayerUUIDPrefix = "ARTIFICIAL_"
+
+// *artificialLayer have to implement Layer
+var _ Layer = &artificialLayer{}
+
 // NewArtificialLayer creates a new artificial layer.
 func NewArtificialLayer(d ArtificialLayerDescriptor, r *rand.Rand) (*artificialLayer, error) {
 	if d.OutputShape.Rows == 0 {
@@ -84,7 +90,7 @@ func NewArtificialLayer(d ArtificialLayerDescriptor, r *rand.Rand) (*artificialL
 	b, _ := matrix.New(d.OutputShape.Rows, 1, bv)
 
 	if d.UUID == "" {
-		d.UUID = common.GenerateUUID(10, r)
+		d.UUID = ArtificialLayerUUIDPrefix + common.GenerateUUID(10, r)
 	}
 	layer := layer{d.UUID, d.InputShape, d.OutputShape, nil, nil, d.LearningRate, &matrix.Matrix{}, &matrix.Matrix{}, nil}
 	return &artificialLayer{layer, aFn, w, b}, nil
@@ -150,4 +156,27 @@ func (l *artificialLayer) Backprop(target *matrix.Matrix) error {
 	} else {
 		return l.Previous.Backprop(e)
 	}
+}
+
+func (l *artificialLayer) GetLayerDescription() interface{} {
+	nextLayerUUID := ""
+	if l.Next != nil {
+		nextLayerUUID = l.Next.GetUUID()
+	}
+
+	return &ArtificialLayerDescriptor{
+		LayerDescriptor: LayerDescriptor{
+			UUID:          l.UUID,
+			NextLayerUUID: nextLayerUUID,
+			InputShape:    l.InputShape,
+			OutputShape:   l.OutputShape,
+		},
+		ActivationFn: l.activationFn.Name,
+		Weights:      l.weights.Values,
+		Biases:       l.biases.Values,
+	}
+}
+
+func (l *artificialLayer) GetUUID() string {
+	return l.UUID
 }
