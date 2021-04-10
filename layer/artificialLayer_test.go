@@ -20,19 +20,19 @@ func TestNew_artificialLayer(t *testing.T) {
 	}{
 		{"With UUID", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
 			LayerDescriptor{"ARTIFICIAL_mdN6RA0rI3", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
-		}, "mdN6RA0rI3", nil},
+		}, "ARTIFICIAL_mdN6RA0rI3", nil},
 		{"Without weights and biases", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
 			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, nil,
-		}, "mUNERA0rI3", nil},
+		}, "ARTIFICIAL_mUNERA0rI3", nil},
 		{"With weights, without biases", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
 			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", make([]float64, 2*4), nil,
-		}, "mUNERA0rI3", nil},
+		}, "ARTIFICIAL_mUNERA0rI3", nil},
 		{"Without weights, with biases", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
 			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", nil, make([]float64, 4),
-		}, "mUNERA0rI3", nil},
+		}, "ARTIFICIAL_mUNERA0rI3", nil},
 		{"With weights, with biases", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
 			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{4, 1, 1}, &learningRate}, "ReLU", make([]float64, 2*4), make([]float64, 4),
-		}, "mUNERA0rI3", nil},
+		}, "ARTIFICIAL_mUNERA0rI3", nil},
 		{"ErrZeroRow output", rand.New(rand.NewSource(0)), ArtificialLayerDescriptor{
 			LayerDescriptor{"", "", Shape{2, 1, 1}, Shape{0, 1, 1}, &learningRate}, "ReLU", nil, nil,
 		}, "", ErrZeroRow},
@@ -177,15 +177,15 @@ func TestForwardprop_artificialLayer(t *testing.T) {
 				layers[d.UUID] = l
 			}
 
-			var fl *artificialLayer
+			var s *artificialLayer
 			for _, d := range tc.layerDescriptions {
 				l := layers[d.UUID]
 				if l.Previous == nil {
-					fl = l
+					s = l
 				}
 			}
 
-			prediction, err := fl.Forwardprop(tc.input)
+			prediction, err := s.Forwardprop(tc.input)
 			if tc.expectedError != nil {
 				if err != tc.expectedError {
 					t.Errorf("expected error is %v, but got %v", tc.expectedError, err)
@@ -281,7 +281,7 @@ func TestBackwardprop_artificialLayer(t *testing.T) {
 				layers[d.UUID], _ = NewArtificialLayer(d, tc.rand)
 			}
 
-			var ll *artificialLayer
+			var e *artificialLayer
 			for _, d := range tc.layerDescriptions {
 				l := layers[d.UUID]
 
@@ -289,22 +289,22 @@ func TestBackwardprop_artificialLayer(t *testing.T) {
 					l.Next = layers[d.NextLayerUUID]
 					layers[d.NextLayerUUID].Previous = l
 				} else {
-					ll = l
+					e = l
 				}
 
 				layers[d.UUID] = l
 			}
 
-			var fl *artificialLayer
+			var s *artificialLayer
 			for _, d := range tc.layerDescriptions {
 				l := layers[d.UUID]
 				if l.Previous == nil {
-					fl = l
+					s = l
 				}
 			}
 
-			fl.Forwardprop(tc.input)
-			err := ll.Backprop(tc.target)
+			s.Forwardprop(tc.input)
+			err := e.Backprop(tc.target)
 			if tc.expectedError != nil {
 				if err != tc.expectedError {
 					t.Errorf("expected error is %v, but got %v", tc.expectedError, err)
